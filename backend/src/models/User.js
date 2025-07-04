@@ -63,7 +63,10 @@ const userSchema = new mongoose.Schema(
       sparse: true, // Allow multiple null values (for non-social users)
     },
     profilePicture: String,
-    validTokens: [String], // To store valid JWT tokens for logout functionality
+    tokenVersion: {
+      type: Number,
+      default: 0
+    }, // For token invalidation
     lastLogin: Date,
     address: {
       street: String,
@@ -130,7 +133,8 @@ userSchema.methods.generateAuthToken = function () {
     { 
       userId: this._id,
       email: this.email,
-      role: this.role 
+      role: this.role,
+      tokenVersion: this.tokenVersion
     },
     process.env.JWT_SECRET,
     { 
@@ -138,31 +142,12 @@ userSchema.methods.generateAuthToken = function () {
     }
   );
   
-  // Add to valid tokens array (limit to 5 most recent tokens)
-  if (!this.validTokens) {
-    this.validTokens = [];
-  }
-  
-  this.validTokens.push(token);
-  
-  // Keep only the 5 most recent tokens
-  if (this.validTokens.length > 5) {
-    this.validTokens = this.validTokens.slice(-5);
-  }
-  
   return token;
-};
-
-// Method to invalidate a specific token
-userSchema.methods.invalidateToken = function (tokenToInvalidate) {
-  if (!this.validTokens) return;
-  
-  this.validTokens = this.validTokens.filter(token => token !== tokenToInvalidate);
 };
 
 // Method to invalidate all tokens (for password change, etc.)
 userSchema.methods.invalidateAllTokens = function () {
-  this.validTokens = [];
+  this.tokenVersion += 1;
 };
 
 // Create a compound index for social logins

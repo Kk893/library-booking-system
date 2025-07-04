@@ -36,8 +36,8 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Check if token is in user's valid tokens list (for logout functionality)
-    if (user.validTokens && !user.validTokens.includes(token)) {
+    // Check token version for invalidation
+    if (decoded.tokenVersion !== user.tokenVersion) {
       return res.status(401).json({ 
         status: 'error',
         message: 'Token has been invalidated. Please login again.' 
