@@ -30,6 +30,7 @@ const SuperAdminDashboard = () => {
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [showAssignAdmin, setShowAssignAdmin] = useState(false);
   const [assigningLibrary, setAssigningLibrary] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [newLibrary, setNewLibrary] = useState({
     name: '',
     address: '',
@@ -613,10 +614,23 @@ const SuperAdminDashboard = () => {
             <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
               {assigningLibrary ? `Assign Admin to ${assigningLibrary.name}` : `Assign Library to ${editingAdmin?.name}`}
             </h3>
+            <input
+              type="text"
+              placeholder={assigningLibrary ? "Search admins..." : "Search libraries..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full px-4 py-2 mb-4 rounded-lg border ${
+                isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+              }`}
+            />
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {assigningLibrary ? (
                 // Show admins when assigning to library
-                admins.filter(admin => admin.role === 'admin').map((admin) => (
+                admins.filter(admin => 
+                  admin.role === 'admin' && 
+                  (admin.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                   admin.email.toLowerCase().includes(searchTerm.toLowerCase()))
+                ).map((admin) => (
                   <div
                     key={admin._id}
                     className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
@@ -653,7 +667,11 @@ const SuperAdminDashboard = () => {
                 ))
               ) : (
                 // Show libraries when assigning to admin
-                libraries.map((library) => (
+                libraries.filter(library => 
+                  library.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  library.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  library.city.toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((library) => (
                   <div
                     key={library._id}
                     className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
@@ -696,6 +714,7 @@ const SuperAdminDashboard = () => {
                   setShowAssignAdmin(false);
                   setAssigningLibrary(null);
                   setEditingAdmin(null);
+                  setSearchTerm('');
                 }}
                 className="w-full bg-gray-500 text-white py-2 rounded-lg font-semibold"
               >
