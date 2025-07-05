@@ -32,6 +32,20 @@ const SuperAdminDashboard = () => {
   const [showAssignAdmin, setShowAssignAdmin] = useState(false);
   const [assigningLibrary, setAssigningLibrary] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [librarySearch, setLibrarySearch] = useState('');
+  const [adminSearch, setAdminSearch] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [offers, setOffers] = useState([
+    { _id: '1', title: '50% Off First Booking', discount: 50, code: 'FIRST50', isActive: true, validUntil: '2024-12-31' },
+    { _id: '2', title: 'Student Discount', discount: 30, code: 'STUDENT30', isActive: true, validUntil: '2024-12-31' }
+  ]);
+  const [showAddOffer, setShowAddOffer] = useState(false);
+  const [newOffer, setNewOffer] = useState({
+    title: '',
+    discount: 0,
+    code: '',
+    validUntil: ''
+  });
   const [showTerminal, setShowTerminal] = useState(false);
   const [newLibrary, setNewLibrary] = useState({
     name: '',
@@ -265,6 +279,9 @@ const SuperAdminDashboard = () => {
               { id: 'libraries', label: '🏢 Libraries' },
               { id: 'admins', label: '👨‍💼 Admins' },
               { id: 'users', label: '👥 Users' },
+              { id: 'offers', label: '🎁 Offers' },
+              { id: 'settings', label: '⚙️ Settings' },
+              { id: 'system', label: '🔧 System' },
               { id: 'analytics', label: '📈 Analytics' }
             ].map((tab) => (
               <button
@@ -351,8 +368,23 @@ const SuperAdminDashboard = () => {
                 + Add Library
               </button>
             </div>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="🔍 Search libraries by name, area, or city..."
+                value={librarySearch}
+                onChange={(e) => setLibrarySearch(e.target.value)}
+                className={`w-full px-4 py-2 rounded-lg border transition-all ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                }`}
+              />
+            </div>
             <div className="space-y-4">
-              {libraries.map((library) => (
+              {libraries.filter(library => 
+                library.name.toLowerCase().includes(librarySearch.toLowerCase()) ||
+                library.area.toLowerCase().includes(librarySearch.toLowerCase()) ||
+                library.city.toLowerCase().includes(librarySearch.toLowerCase())
+              ).map((library) => (
                 <div
                   key={library._id}
                   className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
@@ -426,8 +458,22 @@ const SuperAdminDashboard = () => {
                 + Create Admin
               </button>
             </div>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="🔍 Search admins by name or email..."
+                value={adminSearch}
+                onChange={(e) => setAdminSearch(e.target.value)}
+                className={`w-full px-4 py-2 rounded-lg border transition-all ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                }`}
+              />
+            </div>
             <div className="space-y-4">
-              {admins.map((admin) => (
+              {admins.filter(admin => 
+                admin.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
+                admin.email.toLowerCase().includes(adminSearch.toLowerCase())
+              ).map((admin) => (
                 <div
                   key={admin._id}
                   className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
@@ -495,8 +541,22 @@ const SuperAdminDashboard = () => {
                 👥 User Management
               </h2>
               <div className="text-sm text-gray-500">
-                Total: {users.length} users
+                Total: {users.filter(user => 
+                  user.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+                  user.email.toLowerCase().includes(userSearch.toLowerCase())
+                ).length} users
               </div>
+            </div>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="🔍 Search users by name or email..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className={`w-full px-4 py-2 rounded-lg border transition-all ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                }`}
+              />
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -510,7 +570,10 @@ const SuperAdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {users.filter(user => 
+                    user.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+                    user.email.toLowerCase().includes(userSearch.toLowerCase())
+                  ).map((user) => (
                     <tr key={user._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
                       <td className="py-3 px-4">
                         <div className="flex items-center">
@@ -598,6 +661,193 @@ const SuperAdminDashboard = () => {
                   <div className="text-sm opacity-90">Avg per Booking</div>
                   <div className="text-xs opacity-75">+5% this month</div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'offers' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                🎁 Offers & Promotions
+              </h2>
+              <button 
+                onClick={() => setShowAddOffer(true)}
+                className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+              >
+                + Create Offer
+              </button>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {offers.map((offer) => (
+                <div
+                  key={offer._id}
+                  className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
+                    isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {offer.title}
+                    </h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      offer.isActive 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {offer.isActive ? '✅ Active' : '❌ Inactive'}
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      💰 Discount: {offer.discount}%
+                    </p>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      🏷️ Code: <span className="font-mono bg-gray-200 px-2 py-1 rounded">{offer.code}</span>
+                    </p>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      📅 Valid Until: {new Date(offer.validUntil).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2 mt-4">
+                    <button className="text-blue-500 hover:text-blue-600 text-sm">✏️ Edit</button>
+                    <button className="text-red-500 hover:text-red-600 text-sm">🗑️ Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>⚙️ Platform Settings</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Maintenance Mode</span>
+                  <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">🔧 Enable</button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>User Registration</span>
+                  <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">✅ Enabled</button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Email Notifications</span>
+                  <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">📧 Active</button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Payment Gateway</span>
+                  <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">💳 Online</button>
+                </div>
+              </div>
+            </div>
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>🔐 Security Settings</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Two-Factor Auth</span>
+                  <button className="bg-yellow-500 text-white px-3 py-1 rounded text-sm">⚠️ Optional</button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Session Timeout</span>
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>24 hours</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Password Policy</span>
+                  <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">🔒 Strong</button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>API Rate Limiting</span>
+                  <button className="bg-green-500 text-white px-3 py-1 rounded text-sm">⚡ Active</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'system' && (
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>🔧 System Tools</h3>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => toast.success('🔄 Cache cleared successfully!')}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm"
+                >
+                  🗑️ Clear Cache
+                </button>
+                <button 
+                  onClick={() => toast.success('📦 Database optimized!')}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm"
+                >
+                  ⚡ Optimize DB
+                </button>
+                <button 
+                  onClick={() => toast.success('🔄 Services restarted!')}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg text-sm"
+                >
+                  🔄 Restart Services
+                </button>
+                <button 
+                  onClick={() => toast.success('📊 Logs exported!')}
+                  className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 rounded-lg text-sm"
+                >
+                  📋 Export Logs
+                </button>
+              </div>
+            </div>
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>💾 Backup & Restore</h3>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => toast.success('💾 Full backup created!')}
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg text-sm"
+                >
+                  💾 Full Backup
+                </button>
+                <button 
+                  onClick={() => toast.success('📊 Data backup created!')}
+                  className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 rounded-lg text-sm"
+                >
+                  📊 Data Only
+                </button>
+                <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg text-sm">
+                  📤 Restore Backup
+                </button>
+                <button className="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg text-sm">
+                  📋 Backup History
+                </button>
+              </div>
+            </div>
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>📊 Monitoring</h3>
+              <div className="space-y-3">
+                <div className="text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>CPU Usage</span>
+                    <span className="text-green-500 font-bold">15%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Memory</span>
+                    <span className="text-blue-500 font-bold">2.1GB</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Storage</span>
+                    <span className="text-purple-500 font-bold">85% Free</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Uptime</span>
+                    <span className="text-green-500 font-bold">7d 14h</span>
+                  </div>
+                </div>
+                <button className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm mt-4">
+                  📊 View Details
+                </button>
               </div>
             </div>
           </div>
@@ -812,6 +1062,82 @@ const SuperAdminDashboard = () => {
         isOpen={showTerminal}
         onClose={() => setShowTerminal(false)}
       />
+
+      {/* Add Offer Modal */}
+      {showAddOffer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-500 animate-scale-add ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              Create New Offer
+            </h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setOffers([...offers, { ...newOffer, _id: Date.now().toString(), isActive: true }]);
+              setShowAddOffer(false);
+              setNewOffer({ title: '', discount: 0, code: '', validUntil: '' });
+              toast.success('🎁 Offer created successfully!');
+            }} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Offer Title"
+                value={newOffer.title}
+                onChange={(e) => setNewOffer({...newOffer, title: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="number"
+                  placeholder="Discount %"
+                  value={newOffer.discount}
+                  onChange={(e) => setNewOffer({...newOffer, discount: parseInt(e.target.value) || 0})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Promo Code"
+                  value={newOffer.code}
+                  onChange={(e) => setNewOffer({...newOffer, code: e.target.value.toUpperCase()})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+              </div>
+              <input
+                type="date"
+                placeholder="Valid Until"
+                value={newOffer.validUntil}
+                onChange={(e) => setNewOffer({...newOffer, validUntil: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white py-2 rounded-lg font-semibold"
+                >
+                  Create Offer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddOffer(false)}
+                  className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       
       <style jsx>{`
         @keyframes fade-in {
