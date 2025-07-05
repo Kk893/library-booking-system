@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import AddLibraryModal from '../components/AddLibraryModal';
+import EditLibraryModal from '../components/EditLibraryModal';
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
@@ -27,6 +28,8 @@ const SuperAdminDashboard = () => {
   const [showEditAdmin, setShowEditAdmin] = useState(false);
   const [editingLibrary, setEditingLibrary] = useState(null);
   const [editingAdmin, setEditingAdmin] = useState(null);
+  const [showAssignAdmin, setShowAssignAdmin] = useState(false);
+  const [assigningLibrary, setAssigningLibrary] = useState(null);
   const [newLibrary, setNewLibrary] = useState({
     name: '',
     address: '',
@@ -401,8 +404,19 @@ const SuperAdminDashboard = () => {
                       <button 
                         onClick={() => handleEditLibrary(library)}
                         className="text-blue-500 hover:text-blue-600 transition-colors p-1 mr-2"
+                        title="Edit Library"
                       >
                         ✏️
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setAssigningLibrary(library);
+                          setShowAssignAdmin(true);
+                        }}
+                        className="text-green-500 hover:text-green-600 transition-colors p-1 mr-2"
+                        title="Assign Admin"
+                      >
+                        👨‍💼
                       </button>
                       <button 
                         onClick={() => handleDeleteLibrary(library._id)}
@@ -600,6 +614,75 @@ const SuperAdminDashboard = () => {
         onClose={() => setShowAddLibrary(false)}
         onSuccess={fetchDashboardData}
       />
+
+      <EditLibraryModal 
+        isOpen={showEditLibrary}
+        onClose={() => {
+          setShowEditLibrary(false);
+          setEditingLibrary(null);
+        }}
+        onSuccess={fetchDashboardData}
+        library={editingLibrary}
+      />
+
+      {/* Assign Admin Modal */}
+      {showAssignAdmin && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              Assign Admin to {assigningLibrary?.name}
+            </h3>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {admins.filter(admin => admin.role === 'admin').map((admin) => (
+                <div
+                  key={admin._id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                    isDark ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  }`}
+                  onClick={async () => {
+                    try {
+                      await axios.put(`/api/superadmin/libraries/${assigningLibrary._id}`, { adminId: admin._id });
+                      toast.success('👨‍💼 Admin assigned successfully!');
+                      setShowAssignAdmin(false);
+                      setAssigningLibrary(null);
+                      fetchDashboardData();
+                    } catch (error) {
+                      toast.error('Failed to assign admin');
+                    }
+                  }}
+                >
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-white font-bold text-xs">
+                        {admin.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        {admin.name}
+                      </h4>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {admin.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex space-x-4 pt-4">
+              <button
+                onClick={() => {
+                  setShowAssignAdmin(false);
+                  setAssigningLibrary(null);
+                }}
+                className="w-full bg-gray-500 text-white py-2 rounded-lg font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Library Modal */}
       {showEditLibrary && (
