@@ -23,7 +23,9 @@ const Login = () => {
       toast.success('🎉 Welcome back!');
       navigate('/');
     } catch (error) {
-      console.log('Login error:', error.response?.data);
+      console.log('Full error:', error);
+      console.log('Error response:', error.response);
+      console.log('Error data:', error.response?.data);
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.errors?.[0]?.msg || 
                           'Login failed';
