@@ -10,7 +10,6 @@ const router = express.Router();
 router.post('/register', [
   body('name').notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
-  body('phone').isMobilePhone().withMessage('Valid phone number is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   try {
@@ -29,9 +28,9 @@ router.post('/register', [
       }
     }
     
-    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists with this email or phone' });
+      return res.status(400).json({ message: 'User already exists with this email' });
     }
 
     const user = new User({ name, email, phone, password, role: role || 'user' });
