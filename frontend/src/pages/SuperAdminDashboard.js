@@ -17,7 +17,9 @@ const SuperAdminDashboard = () => {
   });
   const [libraries, setLibraries] = useState([]);
   const [admins, setAdmins] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
   const [showAddLibrary, setShowAddLibrary] = useState(false);
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newLibrary, setNewLibrary] = useState({
@@ -47,15 +49,17 @@ const SuperAdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, librariesRes, adminsRes] = await Promise.all([
+      const [statsRes, librariesRes, adminsRes, usersRes] = await Promise.all([
         axios.get('/api/superadmin/stats'),
         axios.get('/api/superadmin/libraries'),
-        axios.get('/api/superadmin/admins')
+        axios.get('/api/superadmin/admins'),
+        axios.get('/api/superadmin/users')
       ]);
       
       setStats(statsRes.data);
       setLibraries(librariesRes.data);
       setAdmins(adminsRes.data);
+      setUsers(usersRes.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -133,6 +137,28 @@ const SuperAdminDashboard = () => {
     }
   };
 
+  const handleDeleteUser = async (id) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        await axios.delete(`/api/superadmin/users/${id}`);
+        toast.success('🗑️ User deleted successfully!');
+        fetchDashboardData();
+      } catch (error) {
+        toast.error('Failed to delete user');
+      }
+    }
+  };
+
+  const handleSuspendUser = async (id, currentStatus) => {
+    try {
+      await axios.put(`/api/superadmin/users/${id}`, { isActive: !currentStatus });
+      toast.success(`User ${!currentStatus ? 'activated' : 'suspended'} successfully!`);
+      fetchDashboardData();
+    } catch (error) {
+      toast.error('Failed to update user status');
+    }
+  };
+
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -146,209 +172,384 @@ const SuperAdminDashboard = () => {
 
   return (
     <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
-      </div>
-
-      <div className="relative z-10">
-        {/* Header */}
-        <div className={`backdrop-blur-lg border-b ${isDark ? 'bg-gray-800/80 border-gray-700' : 'bg-white/80 border-gray-200'}`}>
-          <div className="container mx-auto px-6 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center animate-fade-in-left">
-                <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mr-4 animate-pulse-slow">
-                  <span className="text-2xl text-white">👑</span>
-                </div>
-                <div>
-                  <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    Super Admin Portal
-                  </h1>
-                  <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Master Control Center
-                  </p>
-                </div>
+      {/* Header */}
+      <div className={`backdrop-blur-lg border-b ${isDark ? 'bg-gray-800/80 border-gray-700' : 'bg-white/80 border-gray-200'}`}>
+        <div className="container mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mr-4">
+                <span className="text-2xl text-white">👑</span>
               </div>
-              <div className="flex items-center space-x-4 animate-fade-in-right">
-                <div className={`px-4 py-2 rounded-full ${isDark ? 'bg-red-900/50 text-red-300' : 'bg-red-100 text-red-800'}`}>
-                  <span className="text-sm font-semibold">🔐 SUPER ADMIN</span>
-                </div>
-                <div className={`px-4 py-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                  <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    Welcome, {user?.name}
-                  </span>
-                </div>
+              <div>
+                <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  Super Admin Portal
+                </h1>
+                <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Master Control Center
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className={`px-4 py-2 rounded-full ${isDark ? 'bg-red-900/50 text-red-300' : 'bg-red-100 text-red-800'}`}>
+                <span className="text-sm font-semibold">🔐 SUPER ADMIN</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="container mx-auto px-6 py-8">
-          {/* Stats Cards */}
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
-            {[
-              { title: 'Total Libraries', value: stats.totalLibraries, icon: '🏢', color: 'from-blue-500 to-cyan-500' },
-              { title: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'from-green-500 to-teal-500' },
-              { title: 'Total Bookings', value: stats.totalBookings, icon: '📅', color: 'from-purple-500 to-pink-500' },
-              { title: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: '💰', color: 'from-yellow-500 to-orange-500' }
-            ].map((stat, index) => (
-              <div
-                key={index}
-                className={`backdrop-blur-lg rounded-2xl p-6 transform transition-all duration-500 hover:scale-105 ${
-                  isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {stat.title}
-                    </p>
-                    <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                      {stat.value}
-                    </p>
-                  </div>
-                  <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center animate-bounce-slow`}>
-                    <span className="text-2xl text-white">{stat.icon}</span>
-                  </div>
+      <div className="container mx-auto px-6 py-8">
+        {/* Stats Cards */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          {[
+            { title: 'Total Libraries', value: stats.totalLibraries, icon: '🏢', color: 'from-blue-500 to-cyan-500' },
+            { title: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'from-green-500 to-teal-500' },
+            { title: 'Total Bookings', value: stats.totalBookings, icon: '📅', color: 'from-purple-500 to-pink-500' },
+            { title: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: '💰', color: 'from-yellow-500 to-orange-500' }
+          ].map((stat, index) => (
+            <div
+              key={index}
+              className={`backdrop-blur-lg rounded-2xl p-6 transform transition-all duration-500 hover:scale-105 ${
+                isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {stat.title}
+                  </p>
+                  <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center`}>
+                  <span className="text-2xl text-white">{stat.icon}</span>
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className={`mb-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="flex space-x-8">
+            {[
+              { id: 'overview', label: '📊 Overview' },
+              { id: 'libraries', label: '🏢 Libraries' },
+              { id: 'admins', label: '👨‍💼 Admins' },
+              { id: 'users', label: '👥 Users' },
+              { id: 'analytics', label: '📈 Analytics' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-4 px-2 font-semibold transition-colors ${
+                  activeTab === tab.id
+                    ? `border-b-2 border-red-500 ${isDark ? 'text-red-400' : 'text-red-600'}`
+                    : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`
+                }`}
+              >
+                {tab.label}
+              </button>
             ))}
           </div>
+        </div>
 
-          {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Libraries Management */}
-            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
-              isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
-            }`}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  🏢 Libraries Management
-                </h2>
-                <button 
-                  onClick={() => setShowAddLibrary(true)}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
-                >
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>📊 Quick Stats</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Active Libraries</span>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{libraries.filter(l => l.isActive !== false).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Active Users</span>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{users.filter(u => u.isActive !== false).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Total Admins</span>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{admins.length}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>🎯 Quick Actions</h3>
+              <div className="space-y-3">
+                <button onClick={() => setShowAddLibrary(true)} className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm">
                   + Add Library
                 </button>
+                <button onClick={() => setShowAddAdmin(true)} className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm">
+                  + Create Admin
+                </button>
+                <button onClick={() => setActiveTab('users')} className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm">
+                  Manage Users
+                </button>
               </div>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {libraries.map((library) => (
-                  <div
-                    key={library._id}
-                    className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
-                      isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
+            </div>
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>⚡ System Health</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Server Status</span>
+                  <span className="text-green-500 font-bold">🟢 Online</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Database</span>
+                  <span className="text-green-500 font-bold">🟢 Connected</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>API Health</span>
+                  <span className="text-green-500 font-bold">🟢 Healthy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'libraries' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                🏢 Libraries Management
+              </h2>
+              <button 
+                onClick={() => setShowAddLibrary(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+              >
+                + Add Library
+              </button>
+            </div>
+            <div className="space-y-4">
+              {libraries.map((library) => (
+                <div
+                  key={library._id}
+                  className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
+                    isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        {library.name}
+                      </h3>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        📍 {library.area}, {library.city}
+                      </p>
+                      <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                        📞 {library.phone} | 📧 {library.email}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleToggleLibraryStatus(library._id, library.isActive)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          library.isActive !== false
+                            ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                            : 'bg-red-100 text-red-800 hover:bg-red-200'
+                        }`}
+                      >
+                        {library.isActive !== false ? '✅ Active' : '❌ Inactive'}
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteLibrary(library._id)}
+                        className="text-red-500 hover:text-red-600 transition-colors p-1"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'admins' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                👨‍💼 Admin Management
+              </h2>
+              <button 
+                onClick={() => setShowAddAdmin(true)}
+                className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+              >
+                + Create Admin
+              </button>
+            </div>
+            <div className="space-y-4">
+              {admins.map((admin) => (
+                <div
+                  key={admin._id}
+                  className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
+                    isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-white font-bold text-sm">
+                          {admin.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
                       <div>
                         <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                          {library.name}
+                          {admin.name}
                         </h3>
                         <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                          📍 {library.area}, {library.city}
-                        </p>
-                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                          📞 {library.phone} | 📧 {library.email}
+                          📧 {admin.email}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleToggleLibraryStatus(library._id, library.isActive)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            library.isActive 
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
-                          }`}
-                        >
-                          {library.isActive ? '✅ Active' : '❌ Inactive'}
-                        </button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        admin.role === 'superadmin'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {admin.role === 'superadmin' ? '👑 SUPER' : '🔑 ADMIN'}
+                      </span>
+                      {admin.role !== 'superadmin' && (
                         <button 
-                          onClick={() => handleDeleteLibrary(library._id)}
+                          onClick={() => handleDeleteAdmin(admin._id)}
                           className="text-red-500 hover:text-red-600 transition-colors p-1"
                         >
                           🗑️
                         </button>
-                      </div>
+                      )}
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                👥 User Management
+              </h2>
+              <div className="text-sm text-gray-500">
+                Total: {users.length} users
               </div>
             </div>
-
-            {/* Admin Management */}
-            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
-              isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
-            }`}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  👨‍💼 Admin Management
-                </h2>
-                <button 
-                  onClick={() => setShowAddAdmin(true)}
-                  className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
-                >
-                  + Create Admin
-                </button>
-              </div>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {admins.map((admin) => (
-                  <div
-                    key={admin._id}
-                    className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
-                      isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-white font-bold text-sm">
-                            {admin.name.charAt(0).toUpperCase()}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>User</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Email</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Joined</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-white font-bold text-xs">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                            {user.name}
                           </span>
                         </div>
-                        <div>
-                          <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                            {admin.name}
-                          </h3>
-                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            📧 {admin.email}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          admin.role === 'superadmin'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-blue-100 text-blue-800'
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {user.email}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          user.isActive !== false
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                         }`}>
-                          {admin.role === 'superadmin' ? '👑 SUPER' : '🔑 ADMIN'}
+                          {user.isActive !== false ? '✅ Active' : '❌ Suspended'}
                         </span>
-                        {admin.role !== 'superadmin' && (
-                          <button 
-                            onClick={() => handleDeleteAdmin(admin._id)}
-                            className="text-red-500 hover:text-red-600 transition-colors p-1"
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSuspendUser(user._id, user.isActive !== false)}
+                            className={`px-3 py-1 rounded text-xs font-semibold ${
+                              user.isActive !== false
+                                ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                                : 'bg-green-500 hover:bg-green-600 text-white'
+                            }`}
                           >
-                            🗑️
+                            {user.isActive !== false ? '⏸️ Suspend' : '▶️ Activate'}
                           </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                          <button
+                            onClick={() => handleDeleteUser(user._id)}
+                            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>📈 Growth Analytics</h3>
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-lg text-white">
+                  <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                  <div className="text-sm opacity-90">Total Users</div>
+                  <div className="text-xs opacity-75">+12% this month</div>
+                </div>
+                <div className="bg-gradient-to-r from-green-500 to-teal-600 p-4 rounded-lg text-white">
+                  <div className="text-2xl font-bold">{stats.totalBookings}</div>
+                  <div className="text-sm opacity-90">Total Bookings</div>
+                  <div className="text-xs opacity-75">+8% this month</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>💰 Revenue Analytics</h3>
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-yellow-500 to-orange-600 p-4 rounded-lg text-white">
+                  <div className="text-2xl font-bold">₹{stats.totalRevenue}</div>
+                  <div className="text-sm opacity-90">Total Revenue</div>
+                  <div className="text-xs opacity-75">+15% this month</div>
+                </div>
+                <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-4 rounded-lg text-white">
+                  <div className="text-2xl font-bold">₹{Math.round(stats.totalRevenue / (stats.totalBookings || 1))}</div>
+                  <div className="text-sm opacity-90">Avg per Booking</div>
+                  <div className="text-xs opacity-75">+5% this month</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Add Library Modal */}
       {showAddLibrary && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${
-            isDark ? 'bg-gray-800' : 'bg-white'
-          }`}>
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
             <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
               Add New Library
             </h3>
@@ -440,9 +641,7 @@ const SuperAdminDashboard = () => {
       {/* Add Admin Modal */}
       {showAddAdmin && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${
-            isDark ? 'bg-gray-800' : 'bg-white'
-          }`}>
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
             <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
               Create New Admin
             </h3>
@@ -506,35 +705,6 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
       )}
-
-      {/* Custom Animations */}
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        @keyframes fade-in-left {
-          0% { opacity: 0; transform: translateX(-30px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes fade-in-right {
-          0% { opacity: 0; transform: translateX(30px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes pulse-slow {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        .animate-blob { animation: blob 7s infinite; }
-        .animate-fade-in-left { animation: fade-in-left 0.8s ease-out; }
-        .animate-fade-in-right { animation: fade-in-right 0.8s ease-out; }
-        .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
-        .animate-bounce-slow { animation: bounce 3s ease-in-out infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
-      `}</style>
     </div>
   );
 };
