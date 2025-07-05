@@ -204,8 +204,8 @@ ${librariesRes.data.map(lib => `• ${lib.name} - ${lib.area}, ${lib.city} (${li
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`w-full max-w-4xl h-96 mx-4 rounded-lg border ${
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+      <div className={`w-full max-w-4xl h-96 mx-4 rounded-lg border transform transition-all duration-500 animate-scale-in ${
         isDark ? 'bg-gray-900 border-gray-700' : 'bg-black border-gray-600'
       }`}>
         {/* Terminal Header */}
@@ -258,6 +258,23 @@ ${librariesRes.data.map(lib => `• ${lib.name} - ${lib.area}, ${lib.city} (${li
           </form>
         </div>
       </div>
+      
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { transform: scale(0.8) translateY(-20px); opacity: 0; }
+          to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.4s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
