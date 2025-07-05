@@ -531,25 +531,25 @@ const SuperAdminDashboard = () => {
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          user.isActive !== false
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold transition-all ${
+                          (user.isActive === undefined || user.isActive === true)
                             ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {user.isActive !== false ? '✅ Active' : '❌ Suspended'}
+                          {(user.isActive === undefined || user.isActive === true) ? '✅ Active' : '❌ Suspended'}
                         </span>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleSuspendUser(user._id, user.isActive !== false)}
-                            className={`px-3 py-1 rounded text-xs font-semibold ${
-                              user.isActive !== false
+                            onClick={() => handleSuspendUser(user._id, (user.isActive === undefined || user.isActive === true))}
+                            className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                              (user.isActive === undefined || user.isActive === true)
                                 ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
                                 : 'bg-green-500 hover:bg-green-600 text-white'
                             }`}
                           >
-                            {user.isActive !== false ? '⏸️ Suspend' : '▶️ Activate'}
+                            {(user.isActive === undefined || user.isActive === true) ? '⏸️ Suspend' : '▶️ Activate'}
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user._id)}
