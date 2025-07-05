@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import AddLibraryModal from '../components/AddLibraryModal';
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
@@ -594,97 +595,11 @@ const SuperAdminDashboard = () => {
         )}
       </div>
 
-      {/* Add Library Modal */}
-      {showAddLibrary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              Add New Library
-            </h3>
-            <form onSubmit={handleAddLibrary} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Library Name"
-                value={newLibrary.name}
-                onChange={(e) => setNewLibrary({...newLibrary, name: e.target.value})}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                }`}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Address"
-                value={newLibrary.address}
-                onChange={(e) => setNewLibrary({...newLibrary, address: e.target.value})}
-                className={`w-full px-4 py-2 rounded-lg border ${
-                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                }`}
-                required
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="City"
-                  value={newLibrary.city}
-                  onChange={(e) => setNewLibrary({...newLibrary, city: e.target.value})}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                  }`}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Area"
-                  value={newLibrary.area}
-                  onChange={(e) => setNewLibrary({...newLibrary, area: e.target.value})}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                  }`}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Phone"
-                  value={newLibrary.phone}
-                  onChange={(e) => setNewLibrary({...newLibrary, phone: e.target.value})}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                  }`}
-                  required
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={newLibrary.email}
-                  onChange={(e) => setNewLibrary({...newLibrary, email: e.target.value})}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                  }`}
-                  required
-                />
-              </div>
-              <div className="flex space-x-4 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg font-semibold"
-                >
-                  Add Library
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAddLibrary(false)}
-                  className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddLibraryModal 
+        isOpen={showAddLibrary}
+        onClose={() => setShowAddLibrary(false)}
+        onSuccess={fetchDashboardData}
+      />
 
       {/* Edit Library Modal */}
       {showEditLibrary && (
