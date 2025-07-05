@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import SuperAdminLogin from './pages/SuperAdminLogin';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ThemeButton from './components/ThemeButton';
@@ -26,6 +27,7 @@ const AppContent = () => {
           <Route path="/libraries" element={<Libraries />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/superadmin-login" element={<SuperAdminLogin />} />
           
           {user && (
             <>
