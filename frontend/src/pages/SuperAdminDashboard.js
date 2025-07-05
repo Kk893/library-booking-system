@@ -6,6 +6,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import AddLibraryModal from '../components/AddLibraryModal';
 import EditLibraryModal from '../components/EditLibraryModal';
+import Terminal from '../components/Terminal';
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ const SuperAdminDashboard = () => {
   const [showAssignAdmin, setShowAssignAdmin] = useState(false);
   const [assigningLibrary, setAssigningLibrary] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showTerminal, setShowTerminal] = useState(false);
   const [newLibrary, setNewLibrary] = useState({
     name: '',
     address: '',
@@ -204,6 +206,17 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowTerminal(true)}
+                className={`p-3 rounded-full transition-all duration-300 hover:scale-110 ${
+                  isDark 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-green-400' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-green-600'
+                }`}
+                title="Open Terminal"
+              >
+                <span className="text-lg">💻</span>
+              </button>
               <div className={`px-4 py-2 rounded-full ${isDark ? 'bg-red-900/50 text-red-300' : 'bg-red-100 text-red-800'}`}>
                 <span className="text-sm font-semibold">🔐 SUPER ADMIN</span>
               </div>
@@ -794,6 +807,11 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
       )}
+
+      <Terminal 
+        isOpen={showTerminal}
+        onClose={() => setShowTerminal(false)}
+      />
     </div>
   );
 };
