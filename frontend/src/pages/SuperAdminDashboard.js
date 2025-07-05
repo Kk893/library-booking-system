@@ -1,35 +1,148 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
-  const [stats] = useState({
-    totalLibraries: 12,
-    totalUsers: 450,
-    totalBookings: 1250,
-    totalRevenue: 85000
+  const [stats, setStats] = useState({
+    totalLibraries: 0,
+    totalUsers: 0,
+    totalBookings: 0,
+    totalRevenue: 0
   });
-  const [libraries] = useState([
-    { _id: '1', name: 'Central Library', area: 'Downtown', city: 'Mumbai', isActive: true },
-    { _id: '2', name: 'Tech Library', area: 'Bandra', city: 'Mumbai', isActive: true },
-    { _id: '3', name: 'Study Hub', area: 'Andheri', city: 'Mumbai', isActive: false }
-  ]);
-  const [admins] = useState([
-    { _id: '1', name: 'John Admin', email: 'john@admin.com', role: 'admin' },
-    { _id: '2', name: 'Super User', email: 'super@admin.com', role: 'superadmin' }
-  ]);
+  const [libraries, setLibraries] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddLibrary, setShowAddLibrary] = useState(false);
+  const [showAddAdmin, setShowAddAdmin] = useState(false);
+  const [newLibrary, setNewLibrary] = useState({
+    name: '',
+    address: '',
+    city: '',
+    area: '',
+    pincode: '',
+    phone: '',
+    email: '',
+    openingHours: { open: '09:00', close: '21:00' }
+  });
+  const [newAdmin, setNewAdmin] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'admin'
+  });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user || user.role !== 'superadmin') {
       navigate('/');
       return;
     }
+    fetchDashboardData();
   }, [user, navigate]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [statsRes, librariesRes, adminsRes] = await Promise.all([
+        axios.get('/api/superadmin/stats'),
+        axios.get('/api/superadmin/libraries'),
+        axios.get('/api/superadmin/admins')
+      ]);
+      
+      setStats(statsRes.data);
+      setLibraries(librariesRes.data);
+      setAdmins(adminsRes.data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddLibrary = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/superadmin/libraries', newLibrary);
+      toast.success('🏢 Library added successfully!');
+      setShowAddLibrary(false);
+      setNewLibrary({
+        name: '',
+        address: '',
+        city: '',
+        area: '',
+        pincode: '',
+        phone: '',
+        email: '',
+        openingHours: { open: '09:00', close: '21:00' }
+      });
+      fetchDashboardData();
+    } catch (error) {
+      toast.error('Failed to add library');
+    }
+  };
+
+  const handleDeleteLibrary = async (id) => {
+    if (window.confirm('Are you sure you want to delete this library?')) {
+      try {
+        await axios.delete(`/api/superadmin/libraries/${id}`);
+        toast.success('🗑️ Library deleted successfully!');
+        fetchDashboardData();
+      } catch (error) {
+        toast.error('Failed to delete library');
+      }
+    }
+  };
+
+  const handleToggleLibraryStatus = async (id, currentStatus) => {
+    try {
+      await axios.put(`/api/superadmin/libraries/${id}`, { isActive: !currentStatus });
+      toast.success(`Library ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
+      fetchDashboardData();
+    } catch (error) {
+      toast.error('Failed to update library status');
+    }
+  };
+
+  const handleAddAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/superadmin/admins', newAdmin);
+      toast.success('👨‍💼 Admin created successfully!');
+      setShowAddAdmin(false);
+      setNewAdmin({ name: '', email: '', password: '', role: 'admin' });
+      fetchDashboardData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create admin');
+    }
+  };
+
+  const handleDeleteAdmin = async (id) => {
+    if (window.confirm('Are you sure you want to delete this admin?')) {
+      try {
+        await axios.delete(`/api/superadmin/admins/${id}`);
+        toast.success('🗑️ Admin deleted successfully!');
+        fetchDashboardData();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete admin');
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-500 mx-auto mb-4"></div>
+          <p className={`text-xl ${isDark ? 'text-white' : 'text-gray-800'}`}>Loading Super Admin Portal...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -76,17 +189,16 @@ const SuperAdminDashboard = () => {
           {/* Stats Cards */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
             {[
-              { title: 'Total Libraries', value: stats.totalLibraries, icon: '🏢', color: 'from-blue-500 to-cyan-500', delay: '0' },
-              { title: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'from-green-500 to-teal-500', delay: '100' },
-              { title: 'Total Bookings', value: stats.totalBookings, icon: '📅', color: 'from-purple-500 to-pink-500', delay: '200' },
-              { title: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: '💰', color: 'from-yellow-500 to-orange-500', delay: '300' }
+              { title: 'Total Libraries', value: stats.totalLibraries, icon: '🏢', color: 'from-blue-500 to-cyan-500' },
+              { title: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'from-green-500 to-teal-500' },
+              { title: 'Total Bookings', value: stats.totalBookings, icon: '📅', color: 'from-purple-500 to-pink-500' },
+              { title: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: '💰', color: 'from-yellow-500 to-orange-500' }
             ].map((stat, index) => (
               <div
                 key={index}
-                className={`backdrop-blur-lg rounded-2xl p-6 transform transition-all duration-500 hover:scale-105 animate-fade-in-up ${
+                className={`backdrop-blur-lg rounded-2xl p-6 transform transition-all duration-500 hover:scale-105 ${
                   isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
                 }`}
-                style={{ animationDelay: `${stat.delay}ms` }}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -108,7 +220,7 @@ const SuperAdminDashboard = () => {
           {/* Main Content Grid */}
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Libraries Management */}
-            <div className={`backdrop-blur-lg rounded-2xl p-6 animate-fade-in-left ${
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
               isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
             }`}>
               <div className="flex items-center justify-between mb-6">
@@ -116,20 +228,19 @@ const SuperAdminDashboard = () => {
                   🏢 Libraries Management
                 </h2>
                 <button 
-                  onClick={() => toast.success('Add library feature coming soon!')}
+                  onClick={() => setShowAddLibrary(true)}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
                 >
                   + Add Library
                 </button>
               </div>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {libraries.map((library, index) => (
+                {libraries.map((library) => (
                   <div
                     key={library._id}
                     className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
                       isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
                     }`}
-                    style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -139,20 +250,26 @@ const SuperAdminDashboard = () => {
                         <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                           📍 {library.area}, {library.city}
                         </p>
+                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                          📞 {library.phone} | 📧 {library.email}
+                        </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          library.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {library.isActive ? '✅ Active' : '❌ Inactive'}
-                        </span>
-                        <button 
-                          onClick={() => toast.success('Edit library feature coming soon!')}
-                          className="text-blue-500 hover:text-blue-600 transition-colors"
+                        <button
+                          onClick={() => handleToggleLibraryStatus(library._id, library.isActive)}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            library.isActive 
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          }`}
                         >
-                          ⚙️
+                          {library.isActive ? '✅ Active' : '❌ Inactive'}
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteLibrary(library._id)}
+                          className="text-red-500 hover:text-red-600 transition-colors p-1"
+                        >
+                          🗑️
                         </button>
                       </div>
                     </div>
@@ -162,7 +279,7 @@ const SuperAdminDashboard = () => {
             </div>
 
             {/* Admin Management */}
-            <div className={`backdrop-blur-lg rounded-2xl p-6 animate-fade-in-right ${
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
               isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
             }`}>
               <div className="flex items-center justify-between mb-6">
@@ -170,20 +287,19 @@ const SuperAdminDashboard = () => {
                   👨‍💼 Admin Management
                 </h2>
                 <button 
-                  onClick={() => toast.success('Create admin feature coming soon!')}
+                  onClick={() => setShowAddAdmin(true)}
                   className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
                 >
                   + Create Admin
                 </button>
               </div>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {admins.map((admin, index) => (
+                {admins.map((admin) => (
                   <div
                     key={admin._id}
                     className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
                       isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
                     }`}
-                    style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
@@ -209,12 +325,14 @@ const SuperAdminDashboard = () => {
                         }`}>
                           {admin.role === 'superadmin' ? '👑 SUPER' : '🔑 ADMIN'}
                         </span>
-                        <button 
-                          onClick={() => toast.success('Delete admin feature coming soon!')}
-                          className="text-red-500 hover:text-red-600 transition-colors"
-                        >
-                          🗑️
-                        </button>
+                        {admin.role !== 'superadmin' && (
+                          <button 
+                            onClick={() => handleDeleteAdmin(admin._id)}
+                            className="text-red-500 hover:text-red-600 transition-colors p-1"
+                          >
+                            🗑️
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -222,46 +340,172 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* System Analytics */}
-          <div className={`mt-8 backdrop-blur-lg rounded-2xl p-6 animate-fade-in-up ${
-            isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
-          }`}>
-            <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              📊 System Analytics
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-slow">
-                  <span className="text-3xl text-white">📈</span>
-                </div>
-                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  Growth Rate
-                </h3>
-                <p className="text-green-500 font-semibold text-2xl">+25%</p>
-              </div>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-slow">
-                  <span className="text-3xl text-white">⚡</span>
-                </div>
-                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  System Health
-                </h3>
-                <p className="text-blue-500 font-semibold text-2xl">99.9%</p>
-              </div>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-slow">
-                  <span className="text-3xl text-white">🎯</span>
-                </div>
-                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  User Satisfaction
-                </h3>
-                <p className="text-purple-500 font-semibold text-2xl">4.8/5</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+
+      {/* Add Library Modal */}
+      {showAddLibrary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${
+            isDark ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              Add New Library
+            </h3>
+            <form onSubmit={handleAddLibrary} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Library Name"
+                value={newLibrary.name}
+                onChange={(e) => setNewLibrary({...newLibrary, name: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Address"
+                value={newLibrary.address}
+                onChange={(e) => setNewLibrary({...newLibrary, address: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={newLibrary.city}
+                  onChange={(e) => setNewLibrary({...newLibrary, city: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Area"
+                  value={newLibrary.area}
+                  onChange={(e) => setNewLibrary({...newLibrary, area: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Phone"
+                  value={newLibrary.phone}
+                  onChange={(e) => setNewLibrary({...newLibrary, phone: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={newLibrary.email}
+                  onChange={(e) => setNewLibrary({...newLibrary, email: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+              </div>
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg font-semibold"
+                >
+                  Add Library
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddLibrary(false)}
+                  className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Admin Modal */}
+      {showAddAdmin && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${
+            isDark ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              Create New Admin
+            </h3>
+            <form onSubmit={handleAddAdmin} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Admin Name"
+                value={newAdmin.name}
+                onChange={(e) => setNewAdmin({...newAdmin, name: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <input
+                type="email"
+                placeholder="Admin Email"
+                value={newAdmin.email}
+                onChange={(e) => setNewAdmin({...newAdmin, email: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={newAdmin.password}
+                onChange={(e) => setNewAdmin({...newAdmin, password: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <select
+                value={newAdmin.role}
+                onChange={(e) => setNewAdmin({...newAdmin, role: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+              >
+                <option value="admin">Admin</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-pink-600 text-white py-2 rounded-lg font-semibold"
+                >
+                  Create Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddAdmin(false)}
+                  className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Custom Animations */}
       <style jsx>{`
@@ -279,10 +523,6 @@ const SuperAdminDashboard = () => {
           0% { opacity: 0; transform: translateX(30px); }
           100% { opacity: 1; transform: translateX(0); }
         }
-        @keyframes fade-in-up {
-          0% { opacity: 0; transform: translateY(30px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
         @keyframes pulse-slow {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.05); }
@@ -290,8 +530,8 @@ const SuperAdminDashboard = () => {
         .animate-blob { animation: blob 7s infinite; }
         .animate-fade-in-left { animation: fade-in-left 0.8s ease-out; }
         .animate-fade-in-right { animation: fade-in-right 0.8s ease-out; }
-        .animate-fade-in-up { animation: fade-in-up 0.8s ease-out; }
         .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+        .animate-bounce-slow { animation: bounce 3s ease-in-out infinite; }
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
       `}</style>
