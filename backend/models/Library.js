@@ -4,7 +4,7 @@ const librarySchema = new mongoose.Schema({
   name: { type: String, required: true },
   city: { type: String, required: true },
   area: { type: String, required: true },
-  pincode: { type: String, required: true, match: /^[0-9]{6}$/ },
+  pincode: { type: String, match: /^[0-9]{6}$/ },
   address: { type: String, required: true },
   phone: { type: String, required: true },
   coordinates: {
