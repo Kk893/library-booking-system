@@ -152,26 +152,15 @@ const Login = () => {
 
           {/* Footer */}
           <div className="mt-8 text-center animate-fade-in-up animation-delay-800">
-            <div className="space-y-2">
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Don't have an account?{' '}
-                <Link 
-                  to="/register" 
-                  className="text-blue-500 hover:text-blue-600 font-semibold transition-colors duration-300"
-                >
-                  Sign up here
-                </Link>
-              </p>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Super Admin?{' '}
-                <Link 
-                  to="/superadmin-login" 
-                  className="text-red-500 hover:text-red-600 font-semibold transition-colors duration-300"
-                >
-                  Access Portal
-                </Link>
-              </p>
-            </div>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              Don't have an account?{' '}
+              <Link 
+                to="/register" 
+                className="text-blue-500 hover:text-blue-600 font-semibold transition-colors duration-300"
+              >
+                Sign up here
+              </Link>
+            </p>
           </div>
         </div>
 

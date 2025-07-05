@@ -148,17 +148,7 @@ const SuperAdminLogin = () => {
           </form>
 
           {/* Footer */}
-          <div className="mt-8 text-center animate-fade-in-up animation-delay-800">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Regular user?{' '}
-              <Link 
-                to="/login" 
-                className="text-red-500 hover:text-red-600 font-semibold transition-colors duration-300"
-              >
-                Login here
-              </Link>
-            </p>
-          </div>
+
         </div>
 
         {/* Floating Elements */}
