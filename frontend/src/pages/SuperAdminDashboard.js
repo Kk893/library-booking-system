@@ -22,6 +22,10 @@ const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddLibrary, setShowAddLibrary] = useState(false);
   const [showAddAdmin, setShowAddAdmin] = useState(false);
+  const [showEditLibrary, setShowEditLibrary] = useState(false);
+  const [showEditAdmin, setShowEditAdmin] = useState(false);
+  const [editingLibrary, setEditingLibrary] = useState(null);
+  const [editingAdmin, setEditingAdmin] = useState(null);
   const [newLibrary, setNewLibrary] = useState({
     name: '',
     address: '',
@@ -156,6 +160,44 @@ const SuperAdminDashboard = () => {
       fetchDashboardData();
     } catch (error) {
       toast.error('Failed to update user status');
+    }
+  };
+
+  const handleEditLibrary = (library) => {
+    setEditingLibrary(library);
+    setNewLibrary({
+      name: library.name,
+      address: library.address,
+      city: library.city,
+      area: library.area,
+      pincode: library.pincode || '',
+      phone: library.phone,
+      email: library.email,
+      openingHours: library.openingHours || { open: '09:00', close: '21:00' }
+    });
+    setShowEditLibrary(true);
+  };
+
+  const handleUpdateLibrary = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`/api/superadmin/libraries/${editingLibrary._id}`, newLibrary);
+      toast.success('🏢 Library updated successfully!');
+      setShowEditLibrary(false);
+      setEditingLibrary(null);
+      setNewLibrary({
+        name: '',
+        address: '',
+        city: '',
+        area: '',
+        pincode: '',
+        phone: '',
+        email: '',
+        openingHours: { open: '09:00', close: '21:00' }
+      });
+      fetchDashboardData();
+    } catch (error) {
+      toast.error('Failed to update library');
     }
   };
 
@@ -354,6 +396,12 @@ const SuperAdminDashboard = () => {
                         }`}
                       >
                         {library.isActive !== false ? '✅ Active' : '❌ Inactive'}
+                      </button>
+                      <button 
+                        onClick={() => handleEditLibrary(library)}
+                        className="text-blue-500 hover:text-blue-600 transition-colors p-1 mr-2"
+                      >
+                        ✏️
                       </button>
                       <button 
                         onClick={() => handleDeleteLibrary(library._id)}
@@ -628,6 +676,101 @@ const SuperAdminDashboard = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddLibrary(false)}
+                  className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Library Modal */}
+      {showEditLibrary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              Edit Library
+            </h3>
+            <form onSubmit={handleUpdateLibrary} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Library Name"
+                value={newLibrary.name}
+                onChange={(e) => setNewLibrary({...newLibrary, name: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Address"
+                value={newLibrary.address}
+                onChange={(e) => setNewLibrary({...newLibrary, address: e.target.value})}
+                className={`w-full px-4 py-2 rounded-lg border ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                }`}
+                required
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={newLibrary.city}
+                  onChange={(e) => setNewLibrary({...newLibrary, city: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Area"
+                  value={newLibrary.area}
+                  onChange={(e) => setNewLibrary({...newLibrary, area: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Phone"
+                  value={newLibrary.phone}
+                  onChange={(e) => setNewLibrary({...newLibrary, phone: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={newLibrary.email}
+                  onChange={(e) => setNewLibrary({...newLibrary, email: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+              </div>
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg font-semibold"
+                >
+                  Update Library
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditLibrary(false);
+                    setEditingLibrary(null);
+                  }}
                   className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
                 >
                   Cancel

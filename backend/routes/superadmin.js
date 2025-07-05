@@ -113,6 +113,16 @@ router.post('/admins', auth, superAdminAuth, async (req, res) => {
   }
 });
 
+// Update admin
+router.put('/admins/:id', auth, superAdminAuth, async (req, res) => {
+  try {
+    const admin = await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).select('-password');
+    res.json(admin);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Delete admin
 router.delete('/admins/:id', auth, superAdminAuth, async (req, res) => {
   try {
