@@ -818,15 +818,38 @@ const SuperAdminDashboard = () => {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        @keyframes scale-in {
-          from { transform: scale(0.9) translateY(-20px); opacity: 0; }
-          to { transform: scale(1) translateY(0); opacity: 1; }
+        @keyframes scale-from-assign-button {
+          from { 
+            transform: scale(0.1) translate(100px, -80px);
+            opacity: 0;
+            transform-origin: center right;
+          }
+          to { 
+            transform: scale(1) translate(0, 0);
+            opacity: 1;
+            transform-origin: center;
+          }
+        }
+        @keyframes scale-from-add-button {
+          from { 
+            transform: scale(0.1) translate(-50px, -120px);
+            opacity: 0;
+            transform-origin: top right;
+          }
+          to { 
+            transform: scale(1) translate(0, 0);
+            opacity: 1;
+            transform-origin: center;
+          }
         }
         .animate-fade-in {
           animation: fade-in 0.3s ease-out;
         }
         .animate-scale-in {
-          animation: scale-in 0.4s ease-out;
+          animation: scale-from-assign-button 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .animate-scale-add {
+          animation: scale-from-add-button 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
       `}</style>
     </div>
