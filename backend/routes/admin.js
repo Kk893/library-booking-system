@@ -258,9 +258,10 @@ router.patch('/libraries/:id/assign-admin', auth, superAdminAuth, async (req, re
 // Get all admins (for super admin)
 router.get('/admins', auth, superAdminAuth, async (req, res) => {
   try {
-    const admins = await User.find({ role: 'admin' })
-      .populate('libraryId', 'name city')
-      .select('-password');
+    const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } })
+      .populate('libraryId', 'name city area')
+      .select('-password')
+      .sort({ role: 1, name: 1 });
     res.json(admins);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
