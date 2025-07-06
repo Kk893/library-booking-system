@@ -17,13 +17,22 @@ const AdminDashboard = () => {
   const [books, setBooks] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [libraryUsers, setLibraryUsers] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [showAddBook, setShowAddBook] = useState(false);
+  const [showAddOffer, setShowAddOffer] = useState(false);
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
     genre: '',
     isbn: '',
     totalCopies: 1,
+    description: ''
+  });
+  const [newOffer, setNewOffer] = useState({
+    title: '',
+    discount: 0,
+    code: '',
+    validUntil: '',
     description: ''
   });
   const [loading, setLoading] = useState(true);
@@ -55,6 +64,11 @@ const AdminDashboard = () => {
         { _id: '1', name: 'Alice Johnson', email: 'alice@example.com', totalBookings: 12, lastVisit: '2024-01-15' },
         { _id: '2', name: 'Bob Smith', email: 'bob@example.com', totalBookings: 8, lastVisit: '2024-01-14' },
         { _id: '3', name: 'Carol Davis', email: 'carol@example.com', totalBookings: 15, lastVisit: '2024-01-15' }
+      ]);
+      setOffers([
+        { _id: '1', title: '50% Off First Booking', discount: 50, code: 'FIRST50', validUntil: '2024-12-31', isActive: true },
+        { _id: '2', title: 'Student Discount', discount: 30, code: 'STUDENT30', validUntil: '2024-12-31', isActive: true },
+        { _id: '3', title: 'Weekend Special', discount: 25, code: 'WEEKEND25', validUntil: '2024-06-30', isActive: false }
       ]);
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -88,6 +102,33 @@ const AdminDashboard = () => {
       booking._id === id ? { ...booking, status } : booking
     ));
     toast.success(`📋 Booking ${status} successfully!`);
+  };
+
+  const handleAddOffer = async (e) => {
+    e.preventDefault();
+    try {
+      const offer = { ...newOffer, _id: Date.now().toString(), isActive: true };
+      setOffers([...offers, offer]);
+      setNewOffer({ title: '', discount: 0, code: '', validUntil: '', description: '' });
+      setShowAddOffer(false);
+      toast.success('🎁 Offer added successfully!');
+    } catch (error) {
+      toast.error('Failed to add offer');
+    }
+  };
+
+  const handleToggleOffer = (id) => {
+    setOffers(offers.map(offer => 
+      offer._id === id ? { ...offer, isActive: !offer.isActive } : offer
+    ));
+    toast.success('🎁 Offer status updated!');
+  };
+
+  const handleDeleteOffer = (id) => {
+    if (window.confirm('Are you sure you want to delete this offer?')) {
+      setOffers(offers.filter(offer => offer._id !== id));
+      toast.success('🗑️ Offer deleted successfully!');
+    }
   };
 
   if (loading) {
