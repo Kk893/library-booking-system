@@ -544,7 +544,7 @@ const SuperAdminDashboard = () => {
                         </p>
                         {admin.libraryId && (
                           <p className={`text-xs mt-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                            🏢 {typeof admin.libraryId === 'object' ? admin.libraryId.name : 'Library Assigned'}
+                            🏢 {admin.libraryId.name || 'Library Assigned'}
                           </p>
                         )}
                         {!admin.libraryId && admin.role === 'admin' && (
