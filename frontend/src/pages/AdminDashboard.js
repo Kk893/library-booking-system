@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
@@ -6,12 +6,99 @@ import toast from 'react-hot-toast';
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const [stats] = useState({
+  const [stats, setStats] = useState({
     totalBookings: 45,
     todayBookings: 8,
     totalRevenue: 12500,
     totalBooks: 150
   });
+  const [activeTab, setActiveTab] = useState('overview');
+  const [books, setBooks] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [libraryUsers, setLibraryUsers] = useState([]);
+  const [showAddBook, setShowAddBook] = useState(false);
+  const [newBook, setNewBook] = useState({
+    title: '',
+    author: '',
+    genre: '',
+    isbn: '',
+    totalCopies: 1,
+    description: ''
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
+  const fetchAdminData = async () => {
+    try {
+      // Simulate API calls - replace with actual endpoints
+      setStats({
+        totalBookings: 45,
+        todayBookings: 8,
+        totalRevenue: 12500,
+        totalBooks: 150
+      });
+      setBooks([
+        { _id: '1', title: 'JavaScript Guide', author: 'John Doe', genre: 'Programming', availableCopies: 5, totalCopies: 10 },
+        { _id: '2', title: 'React Handbook', author: 'Jane Smith', genre: 'Programming', availableCopies: 3, totalCopies: 8 },
+        { _id: '3', title: 'Node.js Basics', author: 'Mike Johnson', genre: 'Programming', availableCopies: 7, totalCopies: 12 }
+      ]);
+      setBookings([
+        { _id: '1', userName: 'Alice Johnson', type: 'seat', seatNumber: 'A-15', date: '2024-01-15', status: 'confirmed', amount: 150 },
+        { _id: '2', userName: 'Bob Smith', type: 'book', bookTitle: 'JavaScript Guide', date: '2024-01-14', status: 'pending', amount: 0 },
+        { _id: '3', userName: 'Carol Davis', type: 'seat', seatNumber: 'B-08', date: '2024-01-15', status: 'confirmed', amount: 200 }
+      ]);
+      setLibraryUsers([
+        { _id: '1', name: 'Alice Johnson', email: 'alice@example.com', totalBookings: 12, lastVisit: '2024-01-15' },
+        { _id: '2', name: 'Bob Smith', email: 'bob@example.com', totalBookings: 8, lastVisit: '2024-01-14' },
+        { _id: '3', name: 'Carol Davis', email: 'carol@example.com', totalBookings: 15, lastVisit: '2024-01-15' }
+      ]);
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddBook = async (e) => {
+    e.preventDefault();
+    try {
+      const book = { ...newBook, _id: Date.now().toString(), availableCopies: newBook.totalCopies };
+      setBooks([...books, book]);
+      setNewBook({ title: '', author: '', genre: '', isbn: '', totalCopies: 1, description: '' });
+      setShowAddBook(false);
+      toast.success('📚 Book added successfully!');
+    } catch (error) {
+      toast.error('Failed to add book');
+    }
+  };
+
+  const handleDeleteBook = (id) => {
+    if (window.confirm('Are you sure you want to delete this book?')) {
+      setBooks(books.filter(book => book._id !== id));
+      toast.success('🗑️ Book deleted successfully!');
+    }
+  };
+
+  const handleUpdateBookingStatus = (id, status) => {
+    setBookings(bookings.map(booking => 
+      booking._id === id ? { ...booking, status } : booking
+    ));
+    toast.success(`📋 Booking ${status} successfully!`);
+  };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto mb-4"></div>
+          <p className={`text-xl ${isDark ? 'text-white' : 'text-gray-800'}`}>Loading Admin Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -19,7 +106,7 @@ const AdminDashboard = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              Admin Dashboard
+              Library Admin Dashboard
             </h1>
             <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               Welcome back, {user?.name}
@@ -30,121 +117,456 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Total Bookings
-                </p>
-                <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  {stats.totalBookings}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-                <span className="text-xl text-white">📅</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Today's Bookings
-                </p>
-                <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  {stats.todayBookings}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center">
-                <span className="text-xl text-white">📊</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Total Revenue
-                </p>
-                <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  ₹{stats.totalRevenue}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-xl text-white">💰</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Total Books
-                </p>
-                <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                  {stats.totalBooks}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-                <span className="text-xl text-white">📚</span>
-              </div>
-            </div>
+        {/* Navigation Tabs */}
+        <div className={`mb-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="flex space-x-8">
+            {[
+              { id: 'overview', label: '📊 Overview' },
+              { id: 'books', label: '📚 Books' },
+              { id: 'bookings', label: '📅 Bookings' },
+              { id: 'users', label: '👥 Users' },
+              { id: 'reports', label: '📈 Reports' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-4 px-2 font-semibold transition-colors ${
+                  activeTab === tab.id
+                    ? `border-b-2 border-blue-500 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                    : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              📚 Manage Books
-            </h3>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              Add, edit, or remove books from your library
-            </p>
-            <button 
-              onClick={() => toast.success('Book management feature coming soon!')}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
-            >
-              Manage Books
-            </button>
-          </div>
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Stats Cards */}
+            <div className="grid md:grid-cols-4 gap-6 mb-8">
+              {[
+                { title: 'Total Bookings', value: stats.totalBookings, icon: '📅', color: 'from-blue-500 to-cyan-500' },
+                { title: "Today's Bookings", value: stats.todayBookings, icon: '📊', color: 'from-green-500 to-teal-500' },
+                { title: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: '💰', color: 'from-purple-500 to-pink-500' },
+                { title: 'Total Books', value: stats.totalBooks, icon: '📚', color: 'from-yellow-500 to-orange-500' }
+              ].map((stat, index) => (
+                <div
+                  key={index}
+                  className={`backdrop-blur-lg rounded-2xl p-6 transform transition-all duration-500 hover:scale-105 ${
+                    isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {stat.title}
+                      </p>
+                      <p className={`text-3xl font-bold mt-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center`}>
+                      <span className="text-2xl text-white">{stat.icon}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-          <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              🪑 Seat Layout
-            </h3>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              Configure seat arrangements and pricing
-            </p>
-            <button 
-              onClick={() => toast.success('Seat configuration feature coming soon!')}
-              className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
-            >
-              Configure Seats
-            </button>
-          </div>
+            {/* Quick Actions */}
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+                <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  📚 Manage Books
+                </h3>
+                <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Add, edit, or remove books from your library
+                </p>
+                <button 
+                  onClick={() => setActiveTab('books')}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
+                >
+                  Manage Books
+                </button>
+              </div>
 
-          <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              📊 Reports
-            </h3>
-            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              Download booking and revenue reports
-            </p>
-            <button 
-              onClick={() => toast.success('Reports feature coming soon!')}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
-            >
-              View Reports
-            </button>
+              <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+                <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  📅 View Bookings
+                </h3>
+                <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Manage seat and book reservations
+                </p>
+                <button 
+                  onClick={() => setActiveTab('bookings')}
+                  className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
+                >
+                  View Bookings
+                </button>
+              </div>
+
+              <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+                <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  📈 Reports
+                </h3>
+                <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Download booking and revenue reports
+                </p>
+                <button 
+                  onClick={() => setActiveTab('reports')}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
+                >
+                  View Reports
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Books Management Tab */}
+        {activeTab === 'books' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                📚 Books Management
+              </h2>
+              <button 
+                onClick={() => setShowAddBook(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+              >
+                + Add Book
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Title</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Author</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Genre</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Available</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {books.map((book) => (
+                    <tr key={book._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        {book.title}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {book.author}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {book.genre}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {book.availableCopies}/{book.totalCopies}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex space-x-2">
+                          <button className="text-blue-500 hover:text-blue-600 text-sm">✏️ Edit</button>
+                          <button 
+                            onClick={() => handleDeleteBook(book._id)}
+                            className="text-red-500 hover:text-red-600 text-sm"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Bookings Management Tab */}
+        {activeTab === 'bookings' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              📅 Bookings Management
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>User</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Details</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Amount</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookings.map((booking) => (
+                    <tr key={booking._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        {booking.userName}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {booking.type === 'seat' ? '🪑 Seat' : '📚 Book'}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {booking.type === 'seat' ? booking.seatNumber : booking.bookTitle}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {booking.date}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        ₹{booking.amount}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {booking.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex space-x-2">
+                          {booking.status === 'pending' && (
+                            <>
+                              <button 
+                                onClick={() => handleUpdateBookingStatus(booking._id, 'confirmed')}
+                                className="text-green-500 hover:text-green-600 text-sm"
+                              >
+                                ✅ Confirm
+                              </button>
+                              <button 
+                                onClick={() => handleUpdateBookingStatus(booking._id, 'cancelled')}
+                                className="text-red-500 hover:text-red-600 text-sm"
+                              >
+                                ❌ Cancel
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Users Tab */}
+        {activeTab === 'users' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              👥 Library Users
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Name</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Email</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Total Bookings</th>
+                    <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Last Visit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {libraryUsers.map((user) => (
+                    <tr key={user._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        {user.name}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {user.email}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {user.totalBookings}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {user.lastVisit}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Reports Tab */}
+        {activeTab === 'reports' && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>📈 Revenue Reports</h3>
+              <div className="space-y-4">
+                <button 
+                  onClick={() => {
+                    const reportData = `Revenue Report\n\nTotal Revenue: ₹${stats.totalRevenue}\nToday's Revenue: ₹${stats.todayBookings * 150}\nTotal Bookings: ${stats.totalBookings}\nAverage per Booking: ₹${Math.round(stats.totalRevenue / stats.totalBookings)}\n\nGenerated: ${new Date().toLocaleString()}`;
+                    const blob = new Blob([reportData], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'revenue-report.txt';
+                    a.click();
+                    toast.success('📊 Revenue report downloaded!');
+                  }}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm"
+                >
+                  📊 Download Revenue Report
+                </button>
+                <button 
+                  onClick={() => {
+                    const bookingData = bookings.map(b => `${b.userName},${b.type},${b.status},${b.amount},${b.date}`).join('\n');
+                    const csvData = `User,Type,Status,Amount,Date\n${bookingData}`;
+                    const blob = new Blob([csvData], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'bookings-report.csv';
+                    a.click();
+                    toast.success('📅 Bookings report downloaded!');
+                  }}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg text-sm"
+                >
+                  📅 Export Bookings Data
+                </button>
+              </div>
+            </div>
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>📚 Library Analytics</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Total Books</span>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{stats.totalBooks}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Available Books</span>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{books.reduce((sum, book) => sum + book.availableCopies, 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Active Users</span>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{libraryUsers.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Occupancy Rate</span>
+                  <span className="font-bold text-green-500">78%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Book Modal */}
+        {showAddBook && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+            <div className={`rounded-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-500 animate-scale-in ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                Add New Book
+              </h3>
+              <form onSubmit={handleAddBook} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Book Title"
+                  value={newBook.title}
+                  onChange={(e) => setNewBook({...newBook, title: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Author Name"
+                  value={newBook.author}
+                  onChange={(e) => setNewBook({...newBook, author: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="Genre"
+                    value={newBook.genre}
+                    onChange={(e) => setNewBook({...newBook, genre: e.target.value})}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="Total Copies"
+                    value={newBook.totalCopies}
+                    onChange={(e) => setNewBook({...newBook, totalCopies: parseInt(e.target.value) || 1})}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                    required
+                  />
+                </div>
+                <input
+                  type="text"
+                  placeholder="ISBN (Optional)"
+                  value={newBook.isbn}
+                  onChange={(e) => setNewBook({...newBook, isbn: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                />
+                <textarea
+                  placeholder="Description (Optional)"
+                  value={newBook.description}
+                  onChange={(e) => setNewBook({...newBook, description: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  rows="3"
+                />
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg font-semibold"
+                  >
+                    Add Book
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddBook(false)}
+                    className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
+      
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { transform: scale(0.9) translateY(-20px); opacity: 0; }
+          to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.4s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
