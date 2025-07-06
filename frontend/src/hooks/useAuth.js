@@ -36,9 +36,20 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       const response = await axios.get('/api/auth/me');
-      setUser(response.data.user);
+      const serverUser = response.data.user;
+      // Merge with localStorage data to preserve profile image
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const localUser = JSON.parse(savedUser);
+        const mergedUser = { ...serverUser, ...localUser };
+        setUser(mergedUser);
+        localStorage.setItem('user', JSON.stringify(mergedUser));
+      } else {
+        setUser(serverUser);
+      }
     } catch (error) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       delete axios.defaults.headers.common['Authorization'];
     } finally {
       setLoading(false);
