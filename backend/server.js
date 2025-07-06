@@ -10,6 +10,7 @@ const userRoutes = require('./routes/user');
 const libraryRoutes = require('./routes/libraries');
 const adminRoutes = require('./routes/admin');
 const superAdminRoutes = require('./routes/superadmin');
+const booksRoutes = require('./routes/books');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/libraries', libraryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/superadmin', superAdminRoutes);
+app.use('/api/books', booksRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/library-booking')

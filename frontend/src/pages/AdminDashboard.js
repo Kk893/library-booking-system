@@ -45,18 +45,16 @@ const AdminDashboard = () => {
 
   const fetchAdminData = async () => {
     try {
-      // Simulate API calls - replace with actual endpoints
+      // Fetch real books data from API
+      const booksResponse = await axios.get('/api/books');
+      setBooks(booksResponse.data);
+      
       setStats({
         totalBookings: 45,
         todayBookings: 8,
         totalRevenue: 12500,
-        totalBooks: 150
+        totalBooks: booksResponse.data.length
       });
-      setBooks([
-        { _id: '1', title: 'JavaScript Guide', author: 'John Doe', genre: 'Programming', availableCopies: 5, totalCopies: 10 },
-        { _id: '2', title: 'React Handbook', author: 'Jane Smith', genre: 'Programming', availableCopies: 3, totalCopies: 8 },
-        { _id: '3', title: 'Node.js Basics', author: 'Mike Johnson', genre: 'Programming', availableCopies: 7, totalCopies: 12 }
-      ]);
       setBookings([
         { _id: '1', userName: 'Alice Johnson', type: 'seat', seatNumber: 'A-15', date: '2024-01-15', status: 'confirmed', amount: 150 },
         { _id: '2', userName: 'Bob Smith', type: 'book', bookTitle: 'JavaScript Guide', date: '2024-01-14', status: 'pending', amount: 0 },
@@ -82,11 +80,18 @@ const AdminDashboard = () => {
   const handleAddBook = async (e) => {
     e.preventDefault();
     try {
-      const book = { ...newBook, _id: Date.now().toString(), availableCopies: newBook.totalCopies };
-      setBooks([...books, book]);
+      const bookData = {
+        ...newBook,
+        availableCopies: newBook.totalCopies,
+        language: 'English',
+        libraryId: '686a483df74ce9f91a6f3a2b' // Default library ID
+      };
+      const response = await axios.post('/api/books', bookData);
+      setBooks([...books, response.data]);
       setNewBook({ title: '', author: '', genre: '', isbn: '', totalCopies: 1, description: '', coverImage: null });
       setShowAddBook(false);
       toast.success('📚 Book added successfully!');
+      fetchAdminData(); // Refresh data
     } catch (error) {
       toast.error('Failed to add book');
     }
@@ -759,7 +764,7 @@ const AdminDashboard = () => {
         )}
       </div>
       
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from { opacity: 0; }
           to { opacity: 1; }
