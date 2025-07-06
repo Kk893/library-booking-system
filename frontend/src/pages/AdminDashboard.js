@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
@@ -125,6 +126,7 @@ const AdminDashboard = () => {
               { id: 'books', label: '📚 Books' },
               { id: 'bookings', label: '📅 Bookings' },
               { id: 'users', label: '👥 Users' },
+              { id: 'offers', label: '🎁 Offers' },
               { id: 'reports', label: '📈 Reports' }
             ].map((tab) => (
               <button
@@ -398,6 +400,73 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Offers Tab */}
+        {activeTab === 'offers' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                🎁 Offers & Promotions
+              </h2>
+              <button 
+                onClick={() => setShowAddOffer(true)}
+                className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+              >
+                + Create Offer
+              </button>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {offers.map((offer) => (
+                <div
+                  key={offer._id}
+                  className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
+                    isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {offer.title}
+                    </h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      offer.isActive 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {offer.isActive ? '✅ Active' : '❌ Inactive'}
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      💰 Discount: {offer.discount}%
+                    </p>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      🏷️ Code: <span className="font-mono bg-gray-200 px-2 py-1 rounded">{offer.code}</span>
+                    </p>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      📅 Valid Until: {new Date(offer.validUntil).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2 mt-4">
+                    <button 
+                      onClick={() => handleToggleOffer(offer._id)}
+                      className={`text-sm px-3 py-1 rounded ${
+                        offer.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
+                      }`}
+                    >
+                      {offer.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteOffer(offer._id)}
+                      className="text-red-500 hover:text-red-600 text-sm"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Reports Tab */}
         {activeTab === 'reports' && (
           <div className="grid lg:grid-cols-2 gap-6">
@@ -540,6 +609,85 @@ const AdminDashboard = () => {
                   <button
                     type="button"
                     onClick={() => setShowAddBook(false)}
+                    className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Add Offer Modal */}
+        {showAddOffer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+            <div className={`rounded-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-500 animate-scale-in ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                Create New Offer
+              </h3>
+              <form onSubmit={handleAddOffer} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Offer Title"
+                  value={newOffer.title}
+                  onChange={(e) => setNewOffer({...newOffer, title: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="number"
+                    placeholder="Discount %"
+                    value={newOffer.discount}
+                    onChange={(e) => setNewOffer({...newOffer, discount: parseInt(e.target.value) || 0})}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Promo Code"
+                    value={newOffer.code}
+                    onChange={(e) => setNewOffer({...newOffer, code: e.target.value.toUpperCase()})}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                    required
+                  />
+                </div>
+                <input
+                  type="date"
+                  placeholder="Valid Until"
+                  value={newOffer.validUntil}
+                  onChange={(e) => setNewOffer({...newOffer, validUntil: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  required
+                />
+                <textarea
+                  placeholder="Description (Optional)"
+                  value={newOffer.description}
+                  onChange={(e) => setNewOffer({...newOffer, description: e.target.value})}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                  }`}
+                  rows="2"
+                />
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white py-2 rounded-lg font-semibold"
+                  >
+                    Create Offer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddOffer(false)}
                     className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
                   >
                     Cancel
