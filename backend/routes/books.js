@@ -1,7 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const Book = require('../models/Book');
-const { auth } = require('../middleware/auth');
+// Auth middleware
+const auth = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+  try {
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+};
 
 // Get all books
 router.get('/', async (req, res) => {
@@ -26,11 +40,13 @@ router.get('/library/:libraryId', async (req, res) => {
 // Add new book (admin only)
 router.post('/', auth, async (req, res) => {
   try {
+    console.log('Adding book:', req.body);
     const book = new Book(req.body);
     await book.save();
     res.status(201).json(book);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Book creation error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

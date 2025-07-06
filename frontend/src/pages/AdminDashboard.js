@@ -84,7 +84,7 @@ const AdminDashboard = () => {
         ...newBook,
         availableCopies: newBook.totalCopies,
         language: 'English',
-        libraryId: '686a483df74ce9f91a6f3a2b' // Default library ID
+        libraryId: books.length > 0 ? (books[0].libraryId?._id || books[0].libraryId) : null
       };
       const response = await axios.post('/api/books', bookData);
       setBooks([...books, response.data]);
@@ -290,7 +290,7 @@ const AdminDashboard = () => {
                 + Add Book
               </button>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
