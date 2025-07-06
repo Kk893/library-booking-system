@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
+import SeatSelection from '../components/SeatSelection';
+import OfferModal from '../components/OfferModal';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -18,9 +20,12 @@ const LibraryDetails = () => {
   const [bookingType, setBookingType] = useState('seat');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
-  const [selectedSeat, setSelectedSeat] = useState('');
+  const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [showOffers, setShowOffers] = useState(false);
+  const [appliedOffer, setAppliedOffer] = useState(null);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   useEffect(() => {
     fetchLibraryDetails();
@@ -59,8 +64,10 @@ const LibraryDetails = () => {
     setBookingType(type);
     setSelectedDate('');
     setSelectedTimeSlot('');
-    setSelectedSeat('');
+    setSelectedSeats([]);
     setSelectedBook(null);
+    setAppliedOffer(null);
+    setTotalAmount(0);
     setShowBookingModal(true);
   };
 
@@ -70,8 +77,8 @@ const LibraryDetails = () => {
       return;
     }
 
-    if (bookingType === 'seat' && (!selectedTimeSlot || !selectedSeat)) {
-      toast.error('Please select time slot and seat');
+    if (bookingType === 'seat' && (!selectedTimeSlot || selectedSeats.length === 0)) {
+      toast.error('Please select time slot and seats');
       return;
     }
 
@@ -91,9 +98,9 @@ const LibraryDetails = () => {
         type: bookingType,
         date: selectedDate,
         ...(bookingType === 'seat' && {
-          seatNumber: selectedSeat,
+          seatNumber: selectedSeats.join(', '),
           timeSlot: selectedTimeSlot,
-          amount: getSeatPrice()
+          amount: getFinalAmount()
         }),
         ...(bookingType === 'book' && {
           bookId: selectedBook._id,
@@ -117,34 +124,49 @@ const LibraryDetails = () => {
     }
   };
 
-  const getSeatPrice = () => {
-    if (!library?.seatLayout) return 100;
+  const calculateTotalAmount = () => {
+    if (selectedSeats.length === 0) return 0;
     
-    const seatType = selectedSeat.charAt(0);
-    if (seatType === 'A') return library.seatLayout.regular?.price || 100;
-    if (seatType === 'B') return library.seatLayout.ac?.price || 150;
-    if (seatType === 'C') return library.seatLayout.premium?.price || 200;
-    return 100;
+    return selectedSeats.reduce((total, seatId) => {
+      const seatType = seatId.charAt(0);
+      let price = 100;
+      
+      if (seatType === 'A') price = library?.seatLayout?.regular?.price || 100;
+      else if (seatType === 'B') price = library?.seatLayout?.ac?.price || 150;
+      else if (seatType === 'C') price = library?.seatLayout?.premium?.price || 200;
+      
+      return total + price;
+    }, 0);
   };
 
-  const generateSeats = () => {
-    const seats = [];
-    const layout = library?.seatLayout || { regular: { count: 20 }, ac: { count: 15 }, premium: { count: 10 } };
-    
-    for (let i = 1; i <= (layout.regular?.count || 20); i++) {
-      seats.push(`A-${i.toString().padStart(2, '0')}`);
+  const getFinalAmount = () => {
+    const baseAmount = totalAmount;
+    if (appliedOffer) {
+      const discount = Math.round((baseAmount * appliedOffer.discount) / 100);
+      return baseAmount - discount;
     }
-    
-    for (let i = 1; i <= (layout.ac?.count || 15); i++) {
-      seats.push(`B-${i.toString().padStart(2, '0')}`);
-    }
-    
-    for (let i = 1; i <= (layout.premium?.count || 10); i++) {
-      seats.push(`C-${i.toString().padStart(2, '0')}`);
-    }
-    
-    return seats;
+    return baseAmount;
   };
+
+  const handleSeatSelect = (seatId, price) => {
+    if (selectedSeats.length >= 6) {
+      toast.error('Maximum 6 seats can be selected');
+      return;
+    }
+    setSelectedSeats([...selectedSeats, seatId]);
+  };
+
+  const handleSeatDeselect = (seatId) => {
+    setSelectedSeats(selectedSeats.filter(id => id !== seatId));
+  };
+
+  const handleApplyOffer = (offer) => {
+    setAppliedOffer(offer);
+  };
+
+  useEffect(() => {
+    setTotalAmount(calculateTotalAmount());
+  }, [selectedSeats, library]);
 
   const getTimeSlots = () => {
     return [
@@ -292,7 +314,7 @@ const LibraryDetails = () => {
         {activeTab === 'seats' && (
           <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
             <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>Seat Layout & Pricing</h3>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
               <div className={`p-4 rounded-lg ${isDark ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
                 <h4 className={`font-bold ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Regular Seats (A)</h4>
                 <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>
@@ -321,12 +343,20 @@ const LibraryDetails = () => {
                 </p>
               </div>
             </div>
+            
+            <SeatSelection
+              library={library}
+              selectedSeats={selectedSeats}
+              onSeatSelect={handleSeatSelect}
+              onSeatDeselect={handleSeatDeselect}
+            />
+            
             <div className="mt-6">
               <button
                 onClick={() => handleBookNow('seat')}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-semibold transition-all transform hover:scale-105"
               >
-                🪑 Book Seat Now
+                🪑 Book Selected Seats
               </button>
             </div>
           </div>
@@ -393,30 +423,30 @@ const LibraryDetails = () => {
       {/* Booking Modal */}
       {showBookingModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              {bookingType === 'seat' ? '🪑 Book Seat' : '📚 Reserve Book'}
+          <div className={`rounded-2xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <h3 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              {bookingType === 'seat' ? '🪑 Book Seats' : '📚 Reserve Book'}
             </h3>
             
-            <div className="space-y-4">
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                  }`}
-                  required
-                />
-              </div>
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date</label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className={`w-full px-4 py-2 rounded-lg border ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                    required
+                  />
+                </div>
 
-              {bookingType === 'seat' && (
-                <>
+                {bookingType === 'seat' && (
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Time Slot</label>
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Time Slot</label>
                     <select
                       value={selectedTimeSlot}
                       onChange={(e) => setSelectedTimeSlot(e.target.value)}
@@ -431,33 +461,24 @@ const LibraryDetails = () => {
                       ))}
                     </select>
                   </div>
+                )}
+              </div>
 
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Seat</label>
-                    <select
-                      value={selectedSeat}
-                      onChange={(e) => setSelectedSeat(e.target.value)}
-                      className={`w-full px-4 py-2 rounded-lg border ${
-                        isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                      }`}
-                      required
-                    >
-                      <option value="">Select seat</option>
-                      {generateSeats().map((seat) => (
-                        <option key={seat} value={seat}>
-                          {seat} - ₹{seat.charAt(0) === 'A' ? (library.seatLayout?.regular?.price || 100) :
-                                    seat.charAt(0) === 'B' ? (library.seatLayout?.ac?.price || 150) :
-                                    (library.seatLayout?.premium?.price || 200)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </>
+              {bookingType === 'seat' && (
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Select Seats</label>
+                  <SeatSelection
+                    library={library}
+                    selectedSeats={selectedSeats}
+                    onSeatSelect={handleSeatSelect}
+                    onSeatDeselect={handleSeatDeselect}
+                  />
+                </div>
               )}
 
               {bookingType === 'book' && (
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Book</label>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Book</label>
                   <select
                     value={selectedBook?._id || ''}
                     onChange={(e) => {
@@ -479,11 +500,47 @@ const LibraryDetails = () => {
                 </div>
               )}
 
-              {selectedSeat && bookingType === 'seat' && (
-                <div className={`p-3 rounded-lg ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
-                  <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                    Total Amount: ₹{getSeatPrice()}
-                  </p>
+              {selectedSeats.length > 0 && bookingType === 'seat' && (
+                <div className="space-y-3">
+                  <div className={`p-4 rounded-lg ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Selected Seats:</span>
+                      <span className={`text-sm font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                        {selectedSeats.join(', ')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Total Amount:</span>
+                      <span className={`text-lg font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                        ₹{totalAmount}
+                      </span>
+                    </div>
+                    {appliedOffer && (
+                      <div className="mt-2 pt-2 border-t border-blue-300">
+                        <div className="flex justify-between items-center">
+                          <span className={`text-sm ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                            Discount ({appliedOffer.discount}%):
+                          </span>
+                          <span className={`text-sm font-bold ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                            -₹{Math.round((totalAmount * appliedOffer.discount) / 100)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className={`text-sm font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Final Amount:</span>
+                          <span className={`text-lg font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                            ₹{getFinalAmount()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={() => setShowOffers(true)}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white py-2 rounded-lg font-semibold transition-all"
+                  >
+                    🎁 Apply Offers & Coupons
+                  </button>
                 </div>
               )}
             </div>
@@ -492,13 +549,13 @@ const LibraryDetails = () => {
               <button
                 onClick={handleBookingSubmit}
                 disabled={bookingLoading}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg font-semibold disabled:opacity-50"
+                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
               >
-                {bookingLoading ? 'Booking...' : `Book ${bookingType === 'seat' ? 'Seat' : 'Book'}`}
+                {bookingLoading ? 'Booking...' : `Book ${bookingType === 'seat' ? 'Seats' : 'Book'}`}
               </button>
               <button
                 onClick={() => setShowBookingModal(false)}
-                className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold"
               >
                 Cancel
               </button>
@@ -506,6 +563,14 @@ const LibraryDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Offers Modal */}
+      <OfferModal
+        isOpen={showOffers}
+        onClose={() => setShowOffers(false)}
+        onApplyOffer={handleApplyOffer}
+        totalAmount={totalAmount}
+      />
     </div>
   );
 };

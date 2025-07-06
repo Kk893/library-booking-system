@@ -11,6 +11,7 @@ const libraryRoutes = require('./routes/libraries');
 const adminRoutes = require('./routes/admin');
 const superAdminRoutes = require('./routes/superadmin');
 const booksRoutes = require('./routes/books');
+const offersRoutes = require('./routes/offers');
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use('/api/libraries', libraryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/books', booksRoutes);
+app.use('/api/offers', offersRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/library-booking')
