@@ -26,7 +26,11 @@ const Login = () => {
         return;
       }
       toast.success('🎉 Welcome back!');
-      navigate('/');
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       console.log('Full error:', error);
       console.log('Error response:', error.response);

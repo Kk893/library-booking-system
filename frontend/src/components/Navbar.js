@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import ProfileDropdown from './ProfileDropdown';
 import toast from 'react-hot-toast';
 
 const Navbar = () => {
@@ -96,22 +97,7 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-4">
             {user ? (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">{user.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                  <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    {user.name}
-                  </span>
-                </div>
-                <button 
-                  onClick={handleLogout} 
-                  className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-full font-medium transition-all transform hover:scale-105"
-                >
-                  Logout
-                </button>
-              </div>
+              <ProfileDropdown />
             ) : (
               <div className="flex space-x-3">
                 <Link 
