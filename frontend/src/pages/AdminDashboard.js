@@ -74,6 +74,10 @@ const AdminDashboard = () => {
         axios.get('/api/admin/offers').catch(() => ({ data: [] }))
       ]);
       
+      console.log('Books data:', booksRes.data);
+      console.log('Users data:', usersRes.data);
+      console.log('Offers data:', offersRes.data);
+      
       setBooks(booksRes.data || []);
       setLibraryUsers(usersRes.data || []);
       setOffers(offersRes.data || []);
@@ -119,8 +123,11 @@ const AdminDashboard = () => {
       const bookData = {
         ...newBook,
         availableCopies: newBook.totalCopies,
-        language: 'English'
+        language: 'English',
+        isActive: true
       };
+      
+      console.log('Adding book:', bookData);
       
       if (editingBook) {
         const response = await axios.put(`/api/admin/books/${editingBook._id}`, bookData);
@@ -128,6 +135,7 @@ const AdminDashboard = () => {
         toast.success('📚 Book updated successfully!');
       } else {
         const response = await axios.post('/api/admin/books', bookData);
+        console.log('Book added response:', response.data);
         setBooks([...books, response.data]);
         toast.success('📚 Book added successfully!');
       }
@@ -137,7 +145,8 @@ const AdminDashboard = () => {
       setShowAddBook(false);
       fetchAdminData();
     } catch (error) {
-      toast.error(editingBook ? 'Failed to update book' : 'Failed to add book');
+      console.error('Add book error:', error.response?.data || error.message);
+      toast.error(error.response?.data?.message || (editingBook ? 'Failed to update book' : 'Failed to add book'));
     }
   };
 
@@ -158,10 +167,13 @@ const AdminDashboard = () => {
   const handleDeleteBook = async (id) => {
     if (window.confirm('Are you sure you want to delete this book?')) {
       try {
+        console.log('Deleting book:', id);
         await axios.delete(`/api/admin/books/${id}`);
         setBooks(books.filter(book => book._id !== id));
         toast.success('🗑️ Book deleted successfully!');
+        fetchAdminData();
       } catch (error) {
+        console.error('Delete book error:', error.response?.data || error.message);
         toast.error('Failed to delete book');
       }
     }
@@ -177,12 +189,22 @@ const AdminDashboard = () => {
   const handleAddOffer = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/admin/offers', newOffer);
+      const offerData = {
+        ...newOffer,
+        isActive: true
+      };
+      
+      console.log('Adding offer:', offerData);
+      const response = await axios.post('/api/admin/offers', offerData);
+      console.log('Offer added response:', response.data);
+      
       setOffers([...offers, response.data]);
       setNewOffer({ title: '', discount: 0, code: '', validUntil: '', description: '' });
       setShowAddOffer(false);
       toast.success('🎁 Offer added successfully!');
+      fetchAdminData();
     } catch (error) {
+      console.error('Add offer error:', error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Failed to add offer');
     }
   };
@@ -190,13 +212,20 @@ const AdminDashboard = () => {
   const handleToggleOffer = async (id) => {
     try {
       const offer = offers.find(o => o._id === id);
-      const response = await axios.put(`/api/admin/offers/${id}`, {
+      const updatedOffer = {
         ...offer,
         isActive: !offer.isActive
-      });
+      };
+      
+      console.log('Toggling offer:', updatedOffer);
+      const response = await axios.put(`/api/admin/offers/${id}`, updatedOffer);
+      console.log('Toggle offer response:', response.data);
+      
       setOffers(offers.map(o => o._id === id ? response.data : o));
       toast.success('🎁 Offer status updated!');
+      fetchAdminData();
     } catch (error) {
+      console.error('Toggle offer error:', error.response?.data || error.message);
       toast.error('Failed to update offer');
     }
   };
@@ -204,10 +233,13 @@ const AdminDashboard = () => {
   const handleDeleteOffer = async (id) => {
     if (window.confirm('Are you sure you want to delete this offer?')) {
       try {
+        console.log('Deleting offer:', id);
         await axios.delete(`/api/admin/offers/${id}`);
         setOffers(offers.filter(offer => offer._id !== id));
         toast.success('🗑️ Offer deleted successfully!');
+        fetchAdminData();
       } catch (error) {
+        console.error('Delete offer error:', error.response?.data || error.message);
         toast.error('Failed to delete offer');
       }
     }
