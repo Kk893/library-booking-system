@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminLogin from './pages/SuperAdminLogin';
+import Profile from './pages/Profile';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ThemeButton from './components/ThemeButton';
@@ -31,6 +32,7 @@ const AppContent = () => {
           
           {user && (
             <>
+              <Route path="/profile" element={<Profile />} />
               {user.role === 'admin' && (
                 <Route path="/admin" element={<AdminDashboard />} />
               )}
