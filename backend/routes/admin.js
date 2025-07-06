@@ -48,7 +48,7 @@ router.get('/library/dashboard', auth, adminAuth, async (req, res) => {
 });
 
 // Get books
-router.get('/books', auth, async (req, res) => {
+router.get('/books', auth, adminAuth, async (req, res) => {
   try {
     const books = await Book.find({ isActive: true });
     res.json(books);
@@ -58,7 +58,7 @@ router.get('/books', auth, async (req, res) => {
 });
 
 // Add book
-router.post('/books', auth, async (req, res) => {
+router.post('/books', auth, adminAuth, async (req, res) => {
   try {
     const book = new Book(req.body);
     await book.save();
@@ -73,7 +73,7 @@ router.post('/books', auth, async (req, res) => {
 });
 
 // Update book
-router.put('/books/:id', auth, async (req, res) => {
+router.put('/books/:id', auth, adminAuth, async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
@@ -90,7 +90,7 @@ router.put('/books/:id', auth, async (req, res) => {
 });
 
 // Delete book
-router.delete('/books/:id', auth, async (req, res) => {
+router.delete('/books/:id', auth, adminAuth, async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
@@ -301,7 +301,7 @@ router.get('/users', auth, superAdminAuth, async (req, res) => {
 });
 
 // Get library users
-router.get('/library-users', auth, async (req, res) => {
+router.get('/library-users', auth, adminAuth, async (req, res) => {
   try {
     const users = await User.find({ role: 'user' })
       .select('-password')
@@ -314,7 +314,7 @@ router.get('/library-users', auth, async (req, res) => {
 });
 
 // Offer Management Routes
-router.get('/offers', auth, async (req, res) => {
+router.get('/offers', auth, adminAuth, async (req, res) => {
   try {
     const offers = await Offer.find().sort({ createdAt: -1 });
     res.json(offers);
@@ -323,7 +323,7 @@ router.get('/offers', auth, async (req, res) => {
   }
 });
 
-router.post('/offers', auth, async (req, res) => {
+router.post('/offers', auth, adminAuth, async (req, res) => {
   try {
     const offer = new Offer(req.body);
     await offer.save();
@@ -336,7 +336,7 @@ router.post('/offers', auth, async (req, res) => {
   }
 });
 
-router.put('/offers/:id', auth, async (req, res) => {
+router.put('/offers/:id', auth, adminAuth, async (req, res) => {
   try {
     const offer = await Offer.findByIdAndUpdate(
       req.params.id,
@@ -352,7 +352,7 @@ router.put('/offers/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/offers/:id', auth, async (req, res) => {
+router.delete('/offers/:id', auth, adminAuth, async (req, res) => {
   try {
     const offer = await Offer.findByIdAndDelete(req.params.id);
     if (!offer) {

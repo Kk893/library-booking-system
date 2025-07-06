@@ -26,6 +26,17 @@ const adminAuth = (req, res, next) => {
   if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
     return res.status(403).json({ message: 'Access denied. Admin role required.' });
   }
+  
+  // Super admin can access everything without library restriction
+  if (req.user.role === 'superadmin') {
+    return next();
+  }
+  
+  // Regular admin needs library assignment
+  if (req.user.role === 'admin' && !req.user.libraryId) {
+    return res.status(403).json({ message: 'Admin not assigned to any library' });
+  }
+  
   next();
 };
 
