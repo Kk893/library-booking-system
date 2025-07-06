@@ -105,6 +105,16 @@ const Terminal = ({ isOpen, onClose }) => {
           } else if (cmd.startsWith('add-offer ')) {
             const title = command.substring(10);
             await addTestOffer(title);
+          } else if (cmd.startsWith('sql ')) {
+            const query = command.substring(4);
+            addOutput(`🔍 SQL Query: ${query}`, 'info');
+            addOutput('⚠️ Direct SQL execution disabled for security', 'error');
+          } else if (cmd.startsWith('log ')) {
+            const level = command.substring(4);
+            addOutput(`📝 Showing ${level} logs...`, 'info');
+            addOutput('  [2024-01-15 10:30:15] INFO: User login successful', 'info');
+            addOutput('  [2024-01-15 10:31:22] WARN: High memory usage detected', 'info');
+            addOutput('  [2024-01-15 10:32:01] INFO: Backup completed', 'success');
           } else {
             addOutput(`Command not found: ${command}`, 'error');
             addOutput('Type "help" for available commands', 'info');
