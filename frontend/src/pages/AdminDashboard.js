@@ -67,11 +67,14 @@ const AdminDashboard = () => {
 
   const fetchAdminData = async () => {
     try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
       // Fetch real data from APIs
       const [booksRes, usersRes, offersRes] = await Promise.all([
-        axios.get('/api/admin/books').catch(() => ({ data: [] })),
-        axios.get('/api/admin/library-users').catch(() => ({ data: [] })),
-        axios.get('/api/admin/offers').catch(() => ({ data: [] }))
+        axios.get('/api/admin/books', { headers }).catch(() => ({ data: [] })),
+        axios.get('/api/admin/library-users', { headers }).catch(() => ({ data: [] })),
+        axios.get('/api/admin/offers', { headers }).catch(() => ({ data: [] }))
       ]);
       
       console.log('Books data:', booksRes.data);
@@ -129,12 +132,15 @@ const AdminDashboard = () => {
       
       console.log('Adding book:', bookData);
       
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
       if (editingBook) {
-        const response = await axios.put(`/api/admin/books/${editingBook._id}`, bookData);
+        const response = await axios.put(`/api/admin/books/${editingBook._id}`, bookData, { headers });
         setBooks(books.map(book => book._id === editingBook._id ? response.data : book));
         toast.success('📚 Book updated successfully!');
       } else {
-        const response = await axios.post('/api/admin/books', bookData);
+        const response = await axios.post('/api/admin/books', bookData, { headers });
         console.log('Book added response:', response.data);
         setBooks([...books, response.data]);
         toast.success('📚 Book added successfully!');
@@ -167,8 +173,11 @@ const AdminDashboard = () => {
   const handleDeleteBook = async (id) => {
     if (window.confirm('Are you sure you want to delete this book?')) {
       try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
         console.log('Deleting book:', id);
-        await axios.delete(`/api/admin/books/${id}`);
+        await axios.delete(`/api/admin/books/${id}`, { headers });
         setBooks(books.filter(book => book._id !== id));
         toast.success('🗑️ Book deleted successfully!');
         fetchAdminData();
@@ -194,8 +203,11 @@ const AdminDashboard = () => {
         isActive: true
       };
       
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
       console.log('Adding offer:', offerData);
-      const response = await axios.post('/api/admin/offers', offerData);
+      const response = await axios.post('/api/admin/offers', offerData, { headers });
       console.log('Offer added response:', response.data);
       
       setOffers([...offers, response.data]);
@@ -217,8 +229,11 @@ const AdminDashboard = () => {
         isActive: !offer.isActive
       };
       
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
       console.log('Toggling offer:', updatedOffer);
-      const response = await axios.put(`/api/admin/offers/${id}`, updatedOffer);
+      const response = await axios.put(`/api/admin/offers/${id}`, updatedOffer, { headers });
       console.log('Toggle offer response:', response.data);
       
       setOffers(offers.map(o => o._id === id ? response.data : o));
@@ -233,8 +248,11 @@ const AdminDashboard = () => {
   const handleDeleteOffer = async (id) => {
     if (window.confirm('Are you sure you want to delete this offer?')) {
       try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
         console.log('Deleting offer:', id);
-        await axios.delete(`/api/admin/offers/${id}`);
+        await axios.delete(`/api/admin/offers/${id}`, { headers });
         setOffers(offers.filter(offer => offer._id !== id));
         toast.success('🗑️ Offer deleted successfully!');
         fetchAdminData();
