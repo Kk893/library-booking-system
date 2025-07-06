@@ -114,7 +114,12 @@ async function clearAndSeedData() {
       }
     ];
 
-    const savedAdmins = await User.insertMany(admins);
+    const savedAdmins = [];
+    for (const adminData of admins) {
+      const admin = new User(adminData);
+      await admin.save();
+      savedAdmins.push(admin);
+    }
     console.log(`✅ Created ${savedAdmins.length} library admins`);
 
     // Assign admins to libraries
@@ -166,7 +171,12 @@ async function clearAndSeedData() {
       }
     ];
 
-    const savedUsers = await User.insertMany(users);
+    const savedUsers = [];
+    for (const userData of users) {
+      const user = new User(userData);
+      await user.save();
+      savedUsers.push(user);
+    }
     console.log(`✅ Created ${savedUsers.length} regular users`);
 
     // Create Books

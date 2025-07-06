@@ -61,6 +61,15 @@ const userSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
     default: Date.now
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  libraryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Library',
+    default: null
   }
 }, {
   timestamps: true
