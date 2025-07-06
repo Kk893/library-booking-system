@@ -106,7 +106,7 @@ const Profile = () => {
 
   return (
     <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto mobile-container py-4 sm:py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
@@ -124,7 +124,7 @@ const Profile = () => {
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Profile Card */}
           <div className={`backdrop-blur-lg rounded-2xl p-6 h-fit ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
             <div className="text-center">
@@ -180,7 +180,7 @@ const Profile = () => {
               </h3>
               
               <form onSubmit={handleProfileUpdate}>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       Full Name
@@ -367,7 +367,7 @@ const Profile = () => {
                     />
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                         New Password

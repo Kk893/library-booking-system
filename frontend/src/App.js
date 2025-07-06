@@ -22,7 +22,7 @@ const AppContent = () => {
     <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <ThemeButton />
       <Navbar />
-      <main className={`${window.location.pathname === '/' ? '' : 'container mx-auto px-6 py-8'}`}>
+      <main className={`${window.location.pathname === '/' ? '' : 'container mx-auto mobile-container py-4 sm:py-8'}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/libraries" element={<Libraries />} />
