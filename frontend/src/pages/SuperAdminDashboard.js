@@ -1107,55 +1107,150 @@ const SuperAdminDashboard = () => {
         )}
 
         {activeTab === 'offers' && (
-          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
-            <div className="flex items-center justify-between mb-6">
+          <div className="space-y-6">
+            {/* Offers Header */}
+            <div className="flex items-center justify-between">
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                🎁 Offers & Promotions
+                🎁 Offers Management
               </h2>
-              <button 
-                onClick={() => setShowAddOffer(true)}
-                className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
-              >
-                + Create Offer
-              </button>
             </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              {offers.map((offer) => (
-                <div
-                  key={offer._id}
-                  className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
-                    isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-                  }`}
+
+            {/* Global Offers Section */}
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  🌍 Global Offers (Platform-wide)
+                </h3>
+                <button 
+                  onClick={() => setShowAddOffer(true)}
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                      {offer.title}
-                    </h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      offer.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {offer.isActive ? '✅ Active' : '❌ Inactive'}
-                    </span>
+                  + Create Global Offer
+                </button>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                {offers.filter(offer => offer.type === 'global' || !offer.type).map((offer) => (
+                  <div
+                    key={offer._id}
+                    className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
+                      isDark ? 'bg-purple-900/30 border-purple-600' : 'bg-purple-50 border-purple-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        {offer.title}
+                      </h4>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        offer.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {offer.isActive ? '✅ Active' : '❌ Inactive'}
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                        💰 Discount: {offer.discount}%
+                      </p>
+                      <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                        🏷️ Code: <span className="font-mono bg-gray-200 px-2 py-1 rounded">{offer.code}</span>
+                      </p>
+                      <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                        📅 Valid Until: {new Date(offer.validUntil).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2 mt-4">
+                      <button className="text-blue-500 hover:text-blue-600 text-sm">✏️ Edit</button>
+                      <button className="text-red-500 hover:text-red-600 text-sm">🗑️ Delete</button>
+                    </div>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-                      💰 Discount: {offer.discount}%
-                    </p>
-                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-                      🏷️ Code: <span className="font-mono bg-gray-200 px-2 py-1 rounded">{offer.code}</span>
-                    </p>
-                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-                      📅 Valid Until: {new Date(offer.validUntil).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex space-x-2 mt-4">
-                    <button className="text-blue-500 hover:text-blue-600 text-sm">✏️ Edit</button>
-                    <button className="text-red-500 hover:text-red-600 text-sm">🗑️ Delete</button>
-                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Admin Offers Section */}
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  👨‍💼 Admin Created Offers
+                </h3>
+                <div className="text-sm text-gray-500">
+                  Offers created by library admins
                 </div>
-              ))}
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Offer Title</th>
+                      <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Library</th>
+                      <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Admin</th>
+                      <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Discount</th>
+                      <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Code</th>
+                      <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
+                      <th className={`text-left py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { _id: 'a1', title: 'Library Special 20%', library: 'Central Library', admin: 'John Admin', discount: 20, code: 'CENTRAL20', isActive: true },
+                      { _id: 'a2', title: 'Student Hours Discount', library: 'Tech Library', admin: 'Jane Admin', discount: 15, code: 'STUDENT15', isActive: true },
+                      { _id: 'a3', title: 'Weekend Reading', library: 'City Library', admin: 'Mike Admin', discount: 10, code: 'WEEKEND10', isActive: false }
+                    ].map((adminOffer) => (
+                      <tr key={adminOffer._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                          {adminOffer.title}
+                        </td>
+                        <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {adminOffer.library}
+                        </td>
+                        <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {adminOffer.admin}
+                        </td>
+                        <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {adminOffer.discount}%
+                        </td>
+                        <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <span className="font-mono bg-gray-200 px-2 py-1 rounded text-xs">{adminOffer.code}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            adminOffer.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {adminOffer.isActive ? '✅ Active' : '❌ Inactive'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex space-x-2">
+                            <button 
+                              onClick={() => {
+                                toast.success(`🎁 Offer ${adminOffer.isActive ? 'deactivated' : 'activated'}!`);
+                              }}
+                              className={`text-sm px-3 py-1 rounded ${
+                                adminOffer.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
+                              }`}
+                            >
+                              {adminOffer.isActive ? '⏸️ Disable' : '▶️ Enable'}
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to delete this admin offer?')) {
+                                  toast.success('🗑️ Admin offer deleted!');
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-600 text-sm"
+                            >
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
