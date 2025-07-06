@@ -47,34 +47,20 @@ router.get('/library/dashboard', auth, adminAuth, async (req, res) => {
   }
 });
 
-// Get books for admin's library
-router.get('/books', auth, adminAuth, async (req, res) => {
+// Get books
+router.get('/books', async (req, res) => {
   try {
-    const libraryId = req.user.libraryId;
-    if (!libraryId) {
-      return res.status(403).json({ message: 'Admin not assigned to any library' });
-    }
-    const books = await Book.find({ libraryId, isActive: true });
+    const books = await Book.find({ isActive: true });
     res.json(books);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-// Manage Books
-router.post('/books', auth, adminAuth, async (req, res) => {
+// Add book
+router.post('/books', async (req, res) => {
   try {
-    const libraryId = req.user.libraryId;
-    if (!libraryId) {
-      return res.status(403).json({ message: 'Admin not assigned to any library' });
-    }
-    
-    const bookData = { 
-      ...req.body, 
-      libraryId: libraryId // Force admin's library ID
-    };
-    
-    const book = new Book(bookData);
+    const book = new Book(req.body);
     await book.save();
     res.status(201).json(book);
   } catch (error) {
@@ -86,7 +72,8 @@ router.post('/books', auth, adminAuth, async (req, res) => {
   }
 });
 
-router.put('/books/:id', auth, async (req, res) => {
+// Update book
+router.put('/books/:id', async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
@@ -102,20 +89,16 @@ router.put('/books/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/books/:id', auth, adminAuth, async (req, res) => {
+// Delete book
+router.delete('/books/:id', async (req, res) => {
   try {
-    const libraryId = req.user.libraryId;
-    if (!libraryId) {
-      return res.status(403).json({ message: 'Admin not assigned to any library' });
-    }
-    
-    const book = await Book.findOneAndUpdate(
-      { _id: req.params.id, libraryId },
+    const book = await Book.findByIdAndUpdate(
+      req.params.id,
       { isActive: false },
       { new: true }
     );
     if (!book) {
-      return res.status(404).json({ message: 'Book not found or access denied' });
+      return res.status(404).json({ message: 'Book not found' });
     }
     res.json({ message: 'Book deleted successfully' });
   } catch (error) {
@@ -317,8 +300,8 @@ router.get('/users', auth, superAdminAuth, async (req, res) => {
   }
 });
 
-// Get library users (for regular admin)
-router.get('/library-users', auth, adminAuth, async (req, res) => {
+// Get library users
+router.get('/library-users', async (req, res) => {
   try {
     const users = await User.find({ role: 'user' })
       .select('-password')
@@ -331,7 +314,7 @@ router.get('/library-users', auth, adminAuth, async (req, res) => {
 });
 
 // Offer Management Routes
-router.get('/offers', auth, async (req, res) => {
+router.get('/offers', async (req, res) => {
   try {
     const offers = await Offer.find().sort({ createdAt: -1 });
     res.json(offers);
@@ -340,7 +323,7 @@ router.get('/offers', auth, async (req, res) => {
   }
 });
 
-router.post('/offers', auth, async (req, res) => {
+router.post('/offers', async (req, res) => {
   try {
     const offer = new Offer(req.body);
     await offer.save();
@@ -353,7 +336,7 @@ router.post('/offers', auth, async (req, res) => {
   }
 });
 
-router.put('/offers/:id', auth, async (req, res) => {
+router.put('/offers/:id', async (req, res) => {
   try {
     const offer = await Offer.findByIdAndUpdate(
       req.params.id,
@@ -369,7 +352,7 @@ router.put('/offers/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/offers/:id', auth, async (req, res) => {
+router.delete('/offers/:id', async (req, res) => {
   try {
     const offer = await Offer.findByIdAndDelete(req.params.id);
     if (!offer) {
