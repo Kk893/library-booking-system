@@ -1,133 +1,130 @@
 const express = require('express');
-const router = express.Router();
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const multer = require('multer');
-const path = require('path');
+const Booking = require('../models/Booking');
+const Library = require('../models/Library');
+const Book = require('../models/Book');
+const { auth } = require('../middleware/auth');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/profiles/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
-  }
-});
+const router = express.Router();
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
-});
-
-// Auth middleware
-const auth = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
+// Get user bookings
+router.get('/bookings', auth, async (req, res) => {
   try {
-    const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
-    req.user = decoded;
-    next();
+    const bookings = await Booking.find({ userId: req.user._id })
+      .populate('libraryId', 'name area city')
+      .populate('bookId', 'title author')
+      .sort({ createdAt: -1 });
+    
+    res.json(bookings);
   } catch (error) {
-    res.status(401).json({ message: 'Invalid token' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-};
+});
+
+// Create new booking
+router.post('/bookings', auth, async (req, res) => {
+  try {
+    const bookingData = {
+      ...req.body,
+      userId: req.user._id
+    };
+    
+    const booking = new Booking(bookingData);
+    await booking.save();
+    
+    res.status(201).json(booking);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Cancel booking
+router.put('/bookings/:id/cancel', auth, async (req, res) => {
+  try {
+    const booking = await Booking.findOne({ 
+      _id: req.params.id, 
+      userId: req.user._id 
+    });
+    
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({ message: 'Booking already cancelled' });
+    }
+    
+    booking.status = 'cancelled';
+    await booking.save();
+    
+    res.json({ message: 'Booking cancelled successfully', booking });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // Get user profile
 router.get('/profile', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
 // Update user profile
 router.put('/profile', auth, async (req, res) => {
   try {
-    const { name, phone, address, city, preferences } = req.body;
+    const { name, phone, address, city } = req.body;
     
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Update fields
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (address) user.address = address;
-    if (city) user.city = city;
-    if (preferences) user.preferences = { ...user.preferences, ...preferences };
-
-    await user.save();
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, phone, address, city },
+      { new: true }
+    ).select('-password');
     
-    const updatedUser = await User.findById(req.user.id).select('-password');
-    res.json(updatedUser);
+    res.json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-// Upload profile image
-router.post('/profile/image', auth, upload.single('profileImage'), async (req, res) => {
+// Get user dashboard stats
+router.get('/dashboard', auth, async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No image file provided' });
-    }
-
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Update profile image path
-    user.profileImage = `/uploads/profiles/${req.file.filename}`;
-    await user.save();
-
-    res.json({ 
-      message: 'Profile image updated successfully',
-      profileImage: user.profileImage 
+    const userId = req.user._id;
+    
+    const totalBookings = await Booking.countDocuments({ userId });
+    const activeBookings = await Booking.countDocuments({ 
+      userId, 
+      status: 'confirmed' 
+    });
+    
+    const totalSpentResult = await Booking.aggregate([
+      { $match: { userId: userId, status: 'confirmed' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    
+    const totalSpent = totalSpentResult.length > 0 ? totalSpentResult[0].total : 0;
+    
+    const recentBookings = await Booking.find({ userId })
+      .populate('libraryId', 'name area city')
+      .populate('bookId', 'title author')
+      .sort({ createdAt: -1 })
+      .limit(5);
+    
+    res.json({
+      stats: {
+        totalBookings,
+        activeBookings,
+        totalSpent,
+        favoriteLibraries: 0
+      },
+      recentBookings
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Change password
-router.put('/password', auth, async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Check current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
-    }
-
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
-    
-    await user.save();
-    res.json({ message: 'Password updated successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

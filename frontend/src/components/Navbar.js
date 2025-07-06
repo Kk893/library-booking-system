@@ -67,11 +67,11 @@ const Navbar = () => {
             }`}>
               🏢 Libraries
             </Link>
-            {user && (
-              <Link to="/my-bookings" className={`font-medium transition-colors ${
+            {user && user.role === 'user' && (
+              <Link to="/dashboard" className={`font-medium transition-colors ${
                 isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
               }`}>
-                🎟️ My Bookings
+                📋 Dashboard
               </Link>
             )}
             {user?.role === 'admin' && (

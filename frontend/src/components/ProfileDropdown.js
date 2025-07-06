@@ -80,6 +80,19 @@ const ProfileDropdown = () => {
             >
               👤 Edit Profile
             </button>
+            {user?.role === 'user' && (
+              <button
+                onClick={() => {
+                  navigate('/dashboard');
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                  isDark ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'
+                }`}
+              >
+                📋 Dashboard
+              </button>
+            )}
             <button
               onClick={() => {
                 navigate('/my-bookings');
