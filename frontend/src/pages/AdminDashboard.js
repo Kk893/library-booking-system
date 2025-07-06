@@ -4,7 +4,6 @@ import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import ImageUpload from '../components/ImageUpload';
-import ProfileDropdown from '../components/ProfileDropdown';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -157,11 +156,8 @@ const AdminDashboard = () => {
               Welcome back, {user?.name}
             </p>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className={`px-4 py-2 rounded-full ${isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
-              <span className="text-sm font-semibold">🔑 ADMIN</span>
-            </div>
-            <ProfileDropdown />
+          <div className={`px-4 py-2 rounded-full ${isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
+            <span className="text-sm font-semibold">🔑 ADMIN</span>
           </div>
         </div>
 

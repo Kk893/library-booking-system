@@ -7,7 +7,6 @@ import toast from 'react-hot-toast';
 import AddLibraryModal from '../components/AddLibraryModal';
 import EditLibraryModal from '../components/EditLibraryModal';
 import Terminal from '../components/Terminal';
-import ProfileDropdown from '../components/ProfileDropdown';
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
@@ -283,7 +282,6 @@ const SuperAdminDashboard = () => {
               <div className={`px-4 py-2 rounded-full ${isDark ? 'bg-red-900/50 text-red-300' : 'bg-red-100 text-red-800'}`}>
                 <span className="text-sm font-semibold">🔐 SUPER ADMIN</span>
               </div>
-              <ProfileDropdown />
             </div>
           </div>
         </div>
