@@ -10,7 +10,7 @@ const SuperAdminLogin = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { superAdminLogin } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ const SuperAdminLogin = () => {
     setLoading(true);
     
     try {
-      const user = await login(formData);
+      const user = await superAdminLogin(formData);
       if (user.role !== 'superadmin') {
         toast.error('🚫 Access Denied - Super Admin Only!');
         return;

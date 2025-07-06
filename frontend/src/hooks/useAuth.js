@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Set base URL for axios
-axios.defaults.baseURL = 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://10.50.155.49:5000';
+axios.defaults.baseURL = API_BASE_URL;
 
 const AuthContext = createContext();
 
@@ -37,16 +38,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.get('/api/auth/me');
       const serverUser = response.data.user;
-      // Merge with localStorage data to preserve profile image
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const localUser = JSON.parse(savedUser);
-        const mergedUser = { ...serverUser, ...localUser };
-        setUser(mergedUser);
-        localStorage.setItem('user', JSON.stringify(mergedUser));
-      } else {
-        setUser(serverUser);
-      }
+      
+      // Always use server data as the source of truth
+      setUser(serverUser);
+      localStorage.setItem('user', JSON.stringify(serverUser));
     } catch (error) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -62,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
       
@@ -72,11 +68,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const superAdminLogin = async (credentials) => {
+    try {
+      const response = await axios.post('/api/auth/superadmin-login', credentials);
+      const { token, user } = response.data;
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser(user);
+      
+      return user;
+    } catch (error) {
+      console.error('Super Admin login error in useAuth:', error);
+      throw error;
+    }
+  };
+
   const register = async (userData) => {
     const response = await axios.post('/api/auth/register', userData);
     const { token, user } = response.data;
     
     localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(user);
     
@@ -92,16 +106,13 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
-    // Persist updated user data
-    const token = localStorage.getItem('token');
-    if (token) {
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    }
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const value = {
     user,
     login,
+    superAdminLogin,
     register,
     logout,
     updateUser,

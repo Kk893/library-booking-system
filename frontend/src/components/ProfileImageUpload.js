@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
 
@@ -6,6 +6,11 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
   const { isDark } = useTheme();
   const [uploading, setUploading] = useState(false);
   const [displayImage, setDisplayImage] = useState(currentImage);
+  
+  // Update display image when currentImage prop changes
+  useEffect(() => {
+    setDisplayImage(currentImage);
+  }, [currentImage]);
 
   const handleImageSelect = (event) => {
     const file = event.target.files[0];
@@ -22,12 +27,12 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
 
       setUploading(true);
       
-      // Pass both preview URL and file to parent
+      // Create preview and upload file
       const reader = new FileReader();
       reader.onload = (e) => {
-        const imageUrl = e.target.result;
-        setDisplayImage(imageUrl);
-        onImageUpdate(imageUrl, file);
+        const previewUrl = e.target.result;
+        setDisplayImage(previewUrl);
+        onImageUpdate(previewUrl, file);
         setUploading(false);
       };
       reader.readAsDataURL(file);
@@ -43,7 +48,7 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
       <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
         {displayImage ? (
           <img 
-            src={displayImage} 
+            src={displayImage.startsWith('http') ? displayImage : `${process.env.REACT_APP_API_URL || 'http://10.50.155.49:5000'}${displayImage}`} 
             alt="Profile" 
             className="w-full h-full object-cover"
           />

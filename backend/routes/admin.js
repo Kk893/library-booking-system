@@ -3,6 +3,7 @@ const Library = require('../models/Library');
 const Book = require('../models/Book');
 const Booking = require('../models/Booking');
 const User = require('../models/User');
+const Offer = require('../models/Offer');
 const { auth, adminAuth, superAdminAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -85,20 +86,15 @@ router.post('/books', auth, adminAuth, async (req, res) => {
   }
 });
 
-router.put('/books/:id', auth, adminAuth, async (req, res) => {
+router.put('/books/:id', auth, async (req, res) => {
   try {
-    const libraryId = req.user.libraryId;
-    if (!libraryId) {
-      return res.status(403).json({ message: 'Admin not assigned to any library' });
-    }
-    
-    const book = await Book.findOneAndUpdate(
-      { _id: req.params.id, libraryId },
+    const book = await Book.findByIdAndUpdate(
+      req.params.id,
       req.body,
       { new: true }
     );
     if (!book) {
-      return res.status(404).json({ message: 'Book not found or access denied' });
+      return res.status(404).json({ message: 'Book not found' });
     }
     res.json(book);
   } catch (error) {
@@ -316,6 +312,70 @@ router.get('/users', auth, superAdminAuth, async (req, res) => {
       .populate('libraryId', 'name city')
       .sort({ createdAt: -1 });
     res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get library users (for regular admin)
+router.get('/library-users', auth, adminAuth, async (req, res) => {
+  try {
+    const users = await User.find({ role: 'user' })
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Offer Management Routes
+router.get('/offers', auth, async (req, res) => {
+  try {
+    const offers = await Offer.find().sort({ createdAt: -1 });
+    res.json(offers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.post('/offers', auth, async (req, res) => {
+  try {
+    const offer = new Offer(req.body);
+    await offer.save();
+    res.status(201).json(offer);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Offer code already exists' });
+    }
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.put('/offers/:id', auth, async (req, res) => {
+  try {
+    const offer = await Offer.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+    res.json(offer);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.delete('/offers/:id', auth, async (req, res) => {
+  try {
+    const offer = await Offer.findByIdAndDelete(req.params.id);
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+    res.json({ message: 'Offer deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

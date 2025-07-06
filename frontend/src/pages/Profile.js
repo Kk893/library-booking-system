@@ -5,6 +5,8 @@ import ProfileImageUpload from '../components/ProfileImageUpload';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://10.50.155.49:5000';
+
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const { isDark } = useTheme();
@@ -23,6 +25,25 @@ const Profile = () => {
       darkMode: isDark
     }
   });
+
+  // Update profileData when user changes
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        profileImage: user.profileImage || null,
+        preferences: {
+          notifications: user.preferences?.notifications || true,
+          emailUpdates: user.preferences?.emailUpdates || false,
+          darkMode: isDark
+        }
+      });
+    }
+  }, [user, isDark]);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -35,10 +56,15 @@ const Profile = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put('http://localhost:5000/api/user/profile', profileData, {
+      const response = await axios.put('/api/user/profile', profileData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      updateUser(response.data);
+      
+      // Ensure profile image is preserved
+      const updatedUser = { ...response.data, profileImage: profileData.profileImage || response.data.profileImage };
+      updateUser(updatedUser);
+      setProfileData(prev => ({ ...prev, ...updatedUser }));
+      
       toast.success('✅ Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {
@@ -57,7 +83,7 @@ const Profile = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:5000/api/user/password', {
+      await axios.put('/api/user/password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       }, {
@@ -83,17 +109,20 @@ const Profile = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.post('http://localhost:5000/api/user/profile/image', formData, {
+        const response = await axios.post('/api/user/profile/image', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`
           }
         });
         
-        const serverImageUrl = `http://localhost:5000${response.data.profileImage}`;
-        const updatedProfileData = { ...profileData, profileImage: serverImageUrl };
-        setProfileData(updatedProfileData);
-        updateUser({ ...user, profileImage: serverImageUrl });
+        const serverImageUrl = `${API_BASE_URL}${response.data.profileImage}`;
+        const updatedUser = { ...user, profileImage: serverImageUrl };
+        
+        // Update both local state and global user state
+        setProfileData({ ...profileData, profileImage: serverImageUrl });
+        updateUser(updatedUser);
+        
         toast.success('📸 Profile picture updated!');
       } catch (error) {
         console.error('Image upload error:', error);
