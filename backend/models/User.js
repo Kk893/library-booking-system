@@ -1,27 +1,72 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String },
-  password: { type: String },
-  role: { type: String, enum: ['user', 'admin', 'superadmin'], default: 'user' },
-  isVerified: { type: Boolean, default: false },
-  libraryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Library' },
-  googleId: { type: String },
-  profilePicture: { type: String }
-}, { timestamps: true });
-
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password') || !this.password) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 6
+  },
+  phone: {
+    type: String,
+    trim: true
+  },
+  address: {
+    type: String,
+    trim: true
+  },
+  city: {
+    type: String,
+    trim: true
+  },
+  profileImage: {
+    type: String,
+    default: null
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'superadmin'],
+    default: 'user'
+  },
+  preferences: {
+    notifications: {
+      type: Boolean,
+      default: true
+    },
+    emailUpdates: {
+      type: Boolean,
+      default: false
+    }
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  totalBookings: {
+    type: Number,
+    default: 0
+  },
+  lastLogin: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true
 });
 
-userSchema.methods.comparePassword = async function(password) {
-  if (!this.password) return false;
-  return await bcrypt.compare(password, this.password);
-};
+// Index for faster queries
+userSchema.index({ email: 1 });
+userSchema.index({ role: 1 });
 
 module.exports = mongoose.model('User', userSchema);

@@ -34,7 +34,10 @@ const Profile = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.put('/api/user/profile', profileData);
+      const token = localStorage.getItem('token');
+      const response = await axios.put('/api/user/profile', profileData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       updateUser(response.data);
       toast.success('✅ Profile updated successfully!');
       setIsEditing(false);
@@ -53,9 +56,12 @@ const Profile = () => {
     }
     setLoading(true);
     try {
+      const token = localStorage.getItem('token');
       await axios.put('/api/user/password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('🔒 Password updated successfully!');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -67,8 +73,28 @@ const Profile = () => {
     }
   };
 
-  const handleImageUpdate = (imageUrl) => {
-    setProfileData({ ...profileData, profileImage: imageUrl });
+  const handleImageUpdate = async (imageUrl, file) => {
+    if (file) {
+      const formData = new FormData();
+      formData.append('profileImage', file);
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.post('/api/user/profile/image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        const updatedProfileData = { ...profileData, profileImage: `http://localhost:5000${response.data.profileImage}` };
+        setProfileData(updatedProfileData);
+        updateUser({ ...user, profileImage: `http://localhost:5000${response.data.profileImage}` });
+        toast.success('📸 Profile picture updated!');
+      } catch (error) {
+        toast.error('Failed to upload image');
+      }
+    }
   };
 
   return (
