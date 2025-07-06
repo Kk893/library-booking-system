@@ -5,6 +5,8 @@ import axios from 'axios';
 
 const Home = () => {
   const [allLibraries, setAllLibraries] = useState([]);
+  const [filteredLibraries, setFilteredLibraries] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('all');
   const { isDark } = useTheme();
 
   useEffect(() => {
@@ -12,7 +14,9 @@ const Home = () => {
     const fetchLibraries = async () => {
       try {
         const response = await axios.get('/api/libraries');
-        setAllLibraries(response.data || []);
+        const libraries = response.data || [];
+        setAllLibraries(libraries);
+        setFilteredLibraries(libraries);
       } catch (error) {
         console.log('Error fetching libraries');
       }
@@ -20,6 +24,32 @@ const Home = () => {
 
     fetchLibraries();
   }, []);
+
+  const handleFilterChange = (filter) => {
+    setActiveFilter(filter);
+    
+    let filtered = [...allLibraries];
+    
+    switch(filter) {
+      case 'popular':
+        // Sort by a popularity metric (using random for demo)
+        filtered = filtered.sort(() => Math.random() - 0.5).slice(0, 6);
+        break;
+      case 'recent':
+        // Sort by creation date (newest first)
+        filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'rated':
+        // Sort by rating (using random rating for demo)
+        filtered = filtered.sort(() => Math.random() - 0.5);
+        break;
+      default:
+        // Show all libraries
+        filtered = allLibraries;
+    }
+    
+    setFilteredLibraries(filtered);
+  };
 
 
 
@@ -85,22 +115,44 @@ const Home = () => {
       <div className={`border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="container mx-auto px-4">
           <div className="flex space-x-8 py-4">
-            <button className={`border-b-2 border-blue-600 pb-2 font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+            <button 
+              onClick={() => handleFilterChange('all')}
+              className={`pb-2 font-semibold transition-colors ${
+                activeFilter === 'all'
+                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+              }`}
+            >
               📚 All Libraries
             </button>
-            <button className={`pb-2 font-semibold transition-colors ${
-              isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
-            }`}>
+            <button 
+              onClick={() => handleFilterChange('popular')}
+              className={`pb-2 font-semibold transition-colors ${
+                activeFilter === 'popular'
+                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+              }`}
+            >
               ⭐ Popular
             </button>
-            <button className={`pb-2 font-semibold transition-colors ${
-              isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
-            }`}>
+            <button 
+              onClick={() => handleFilterChange('recent')}
+              className={`pb-2 font-semibold transition-colors ${
+                activeFilter === 'recent'
+                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+              }`}
+            >
               🆕 Recently Added
             </button>
-            <button className={`pb-2 font-semibold transition-colors ${
-              isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
-            }`}>
+            <button 
+              onClick={() => handleFilterChange('rated')}
+              className={`pb-2 font-semibold transition-colors ${
+                activeFilter === 'rated'
+                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+              }`}
+            >
               🏆 Top Rated
             </button>
           </div>
@@ -112,14 +164,17 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              📖 Featured Libraries
+              📖 {activeFilter === 'all' ? 'Featured Libraries' :
+                   activeFilter === 'popular' ? 'Popular Libraries' :
+                   activeFilter === 'recent' ? 'Recently Added Libraries' :
+                   'Top Rated Libraries'}
             </h2>
             <Link to="/libraries" className={`font-semibold ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
               View All →
             </Link>
           </div>
           <div className="grid md:grid-cols-4 gap-6">
-            {allLibraries.slice(0, 8).map((library, index) => (
+            {filteredLibraries.slice(0, 8).map((library, index) => (
               <div key={library._id} className={`rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:scale-105 ${
                 isDark ? 'bg-gray-800' : 'bg-white'
               }`}>
