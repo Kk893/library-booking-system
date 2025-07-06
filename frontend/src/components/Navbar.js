@@ -67,6 +67,11 @@ const Navbar = () => {
             }`}>
               🏢 Libraries
             </Link>
+            <Link to="/books" className={`font-medium transition-colors ${
+              isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
+            }`}>
+              📚 Books
+            </Link>
             {user && user.role === 'user' && (
               <Link to="/dashboard" className={`font-medium transition-colors ${
                 isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
@@ -88,7 +93,7 @@ const Navbar = () => {
                 👑 Super Admin
               </Link>
             )}
-            <Link to="#" className={`font-medium transition-colors ${
+            <Link to="/offers" className={`font-medium transition-colors ${
               isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
             }`}>
               🎁 Offers
