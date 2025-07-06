@@ -19,6 +19,11 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Load user from localStorage first
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
       fetchUser();
     } else {
       setLoading(false);
@@ -66,8 +71,18 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+  };
+
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    // Persist updated user data
+    const token = localStorage.getItem('token');
+    if (token) {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
   };
 
   const value = {
@@ -75,6 +90,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUser,
     loading
   };
 
