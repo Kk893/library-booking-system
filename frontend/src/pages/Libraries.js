@@ -185,7 +185,7 @@ const Libraries = () => {
                     to={`/libraries/${library._id}`}
                     className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
                   >
-                    View Details
+                    Book Now
                   </Link>
                 </div>
               </div>

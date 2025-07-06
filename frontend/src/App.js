@@ -10,6 +10,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminLogin from './pages/SuperAdminLogin';
 import UserDashboard from './pages/UserDashboard';
+import LibraryDetails from './pages/LibraryDetails';
+import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -27,6 +29,8 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/libraries" element={<Libraries />} />
+          <Route path="/libraries/:id" element={<LibraryDetails />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/superadmin-login" element={<SuperAdminLogin />} />
