@@ -42,7 +42,11 @@ const ProfileDropdown = () => {
       >
         <div className="w-8 h-8 rounded-full overflow-hidden">
           {user?.profileImage ? (
-            <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+            <img 
+              src={user.profileImage.startsWith('http') ? user.profileImage : `http://localhost:5000${user.profileImage}`} 
+              alt="Profile" 
+              className="w-full h-full object-cover" 
+            />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
               <span className="text-white text-sm font-bold">{getInitials(user?.name)}</span>

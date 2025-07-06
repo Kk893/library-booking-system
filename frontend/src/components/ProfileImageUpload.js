@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
   const { isDark } = useTheme();
   const [uploading, setUploading] = useState(false);
+  const [displayImage, setDisplayImage] = useState(currentImage);
 
   const handleImageSelect = (event) => {
     const file = event.target.files[0];
@@ -21,12 +22,13 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
 
       setUploading(true);
       
+      // Pass both preview URL and file to parent
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target.result;
-        onImageUpdate(imageUrl);
+        setDisplayImage(imageUrl);
+        onImageUpdate(imageUrl, file);
         setUploading(false);
-        toast.success('📸 Profile picture updated!');
       };
       reader.readAsDataURL(file);
     }
@@ -39,9 +41,9 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
   return (
     <div className="relative inline-block">
       <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-        {currentImage ? (
+        {displayImage ? (
           <img 
-            src={currentImage} 
+            src={displayImage} 
             alt="Profile" 
             className="w-full h-full object-cover"
           />

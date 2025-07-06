@@ -74,6 +74,9 @@ const Profile = () => {
   };
 
   const handleImageUpdate = async (imageUrl, file) => {
+    // Update preview immediately
+    setProfileData({ ...profileData, profileImage: imageUrl });
+    
     if (file) {
       const formData = new FormData();
       formData.append('profileImage', file);
@@ -87,12 +90,16 @@ const Profile = () => {
           }
         });
         
-        const updatedProfileData = { ...profileData, profileImage: `http://localhost:5000${response.data.profileImage}` };
+        const serverImageUrl = `http://localhost:5000${response.data.profileImage}`;
+        const updatedProfileData = { ...profileData, profileImage: serverImageUrl };
         setProfileData(updatedProfileData);
-        updateUser({ ...user, profileImage: `http://localhost:5000${response.data.profileImage}` });
+        updateUser({ ...user, profileImage: serverImageUrl });
         toast.success('📸 Profile picture updated!');
       } catch (error) {
+        console.error('Image upload error:', error);
         toast.error('Failed to upload image');
+        // Revert to original image on error
+        setProfileData({ ...profileData, profileImage: user?.profileImage });
       }
     }
   };
