@@ -30,17 +30,9 @@ const AppContent = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/superadmin-login" element={<SuperAdminLogin />} />
           
-          {user && (
-            <>
-              <Route path="/profile" element={<Profile />} />
-              {user.role === 'admin' && (
-                <Route path="/admin" element={<AdminDashboard />} />
-              )}
-              {user.role === 'superadmin' && (
-                <Route path="/superadmin" element={<SuperAdminDashboard />} />
-              )}
-            </>
-          )}
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/superadmin" element={<SuperAdminDashboard />} />
         </Routes>
       </main>
     </div>

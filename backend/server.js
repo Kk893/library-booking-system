@@ -29,7 +29,8 @@ app.use(cors({
   origin: ['http://localhost:3000', 'http://10.50.155.49:3000'],
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check

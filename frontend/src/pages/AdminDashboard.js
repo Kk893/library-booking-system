@@ -69,7 +69,7 @@ const AdminDashboard = () => {
     try {
       // Fetch real data from APIs
       const [booksRes, usersRes, offersRes] = await Promise.all([
-        axios.get('/api/books').catch(() => ({ data: [] })),
+        axios.get('/api/admin/books').catch(() => ({ data: [] })),
         axios.get('/api/admin/library-users').catch(() => ({ data: [] })),
         axios.get('/api/admin/offers').catch(() => ({ data: [] }))
       ]);
