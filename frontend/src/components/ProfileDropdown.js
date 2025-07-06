@@ -128,7 +128,7 @@ const ProfileDropdown = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes scale-in {
           from { transform: scale(0.95) translateY(-10px); opacity: 0; }
           to { transform: scale(1) translateY(0); opacity: 1; }

@@ -35,7 +35,7 @@ const Profile = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put('/api/user/profile', profileData, {
+      const response = await axios.put('http://localhost:5000/api/user/profile', profileData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       updateUser(response.data);
@@ -57,7 +57,7 @@ const Profile = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put('/api/user/password', {
+      await axios.put('http://localhost:5000/api/user/password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       }, {
@@ -83,7 +83,7 @@ const Profile = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.post('/api/user/profile/image', formData, {
+        const response = await axios.post('http://localhost:5000/api/user/profile/image', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`
