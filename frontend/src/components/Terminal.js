@@ -1,19 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const Terminal = ({ isOpen, onClose }) => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState([
-    { type: 'system', text: '🔐 Super Admin Terminal v1.0' },
-    { type: 'system', text: 'Type "help" for available commands' }
+  const [output, setOutput] = useState([
+    { type: 'system', text: '🚀 Super Admin Terminal v1.0' },
+    { type: 'system', text: 'Type "help" for available commands' },
+    { type: 'system', text: '─'.repeat(50) }
   ]);
-  const [commandHistory, setCommandHistory] = useState([]);
+  const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const inputRef = useRef(null);
-  const terminalRef = useRef(null);
+  const outputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -22,156 +25,294 @@ const Terminal = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [history]);
+  }, [output]);
 
-  const executeCommand = async (cmd) => {
-    const command = cmd.trim().toLowerCase();
-    const args = cmd.trim().split(' ');
-    
-    setHistory(prev => [...prev, { type: 'input', text: `$ ${cmd}` }]);
-    
+  const addOutput = (text, type = 'output') => {
+    setOutput(prev => [...prev, { type, text, timestamp: new Date().toLocaleTimeString() }]);
+  };
+
+  const executeCommand = async (command) => {
+    const cmd = command.trim().toLowerCase();
+    addOutput(`$ ${command}`, 'input');
+
     try {
-      switch (command) {
+      switch (cmd) {
         case 'help':
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: `Available commands:
-• help - Show this help
-• stats - Show system statistics
-• users - List all users
-• admins - List all admins
-• libraries - List all libraries
-• clear - Clear terminal
-• backup - Create system backup
-• restart - Restart services
-• logs - Show recent logs
-• status - System health check`
-          }]);
+          addOutput('Available Commands:', 'success');
+          addOutput('  help                 - Show this help', 'info');
+          addOutput('  clear                - Clear terminal', 'info');
+          addOutput('  status               - Show system status', 'info');
+          addOutput('  test-apis            - Test all admin APIs', 'info');
+          addOutput('  test-books           - Test books API', 'info');
+          addOutput('  test-offers          - Test offers API', 'info');
+          addOutput('  test-users           - Test users API', 'info');
+          addOutput('  add-book <title>     - Add test book', 'info');
+          addOutput('  add-offer <title>    - Add test offer', 'info');
+          addOutput('  get-stats            - Get platform stats', 'info');
+          addOutput('  whoami               - Show current user', 'info');
           break;
 
         case 'clear':
-          setHistory([
-            { type: 'system', text: '🔐 Super Admin Terminal v1.0' },
-            { type: 'system', text: 'Type "help" for available commands' }
-          ]);
-          break;
-
-        case 'stats':
-          const statsRes = await axios.get('/api/superadmin/stats');
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: `System Statistics:
-📊 Total Libraries: ${statsRes.data.totalLibraries}
-👥 Total Users: ${statsRes.data.totalUsers}
-📅 Total Bookings: ${statsRes.data.totalBookings}
-💰 Total Revenue: ₹${statsRes.data.totalRevenue}`
-          }]);
-          break;
-
-        case 'users':
-          const usersRes = await axios.get('/api/superadmin/users');
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: `Users (${usersRes.data.length}):
-${usersRes.data.map(user => `• ${user.name} (${user.email}) - ${user.isActive !== false ? 'Active' : 'Suspended'}`).join('\n')}`
-          }]);
-          break;
-
-        case 'admins':
-          const adminsRes = await axios.get('/api/superadmin/admins');
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: `Admins (${adminsRes.data.length}):
-${adminsRes.data.map(admin => `• ${admin.name} (${admin.email}) - ${admin.role.toUpperCase()}`).join('\n')}`
-          }]);
-          break;
-
-        case 'libraries':
-          const librariesRes = await axios.get('/api/superadmin/libraries');
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: `Libraries (${librariesRes.data.length}):
-${librariesRes.data.map(lib => `• ${lib.name} - ${lib.area}, ${lib.city} (${lib.isActive !== false ? 'Active' : 'Inactive'})`).join('\n')}`
-          }]);
-          break;
-
-        case 'backup':
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: '🔄 Creating system backup...\n✅ Database backup completed\n✅ Files backup completed\n📦 Backup saved to: /backups/system_' + new Date().toISOString().split('T')[0] + '.zip'
-          }]);
-          toast.success('System backup created successfully!');
-          break;
-
-        case 'restart':
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: '🔄 Restarting services...\n✅ API Server restarted\n✅ Database connection refreshed\n✅ Cache cleared\n🚀 All services running normally'
-          }]);
-          toast.success('Services restarted successfully!');
-          break;
-
-        case 'logs':
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: `Recent System Logs:
-[${new Date().toLocaleTimeString()}] INFO: User login successful
-[${new Date().toLocaleTimeString()}] INFO: Library booking created
-[${new Date().toLocaleTimeString()}] INFO: Admin panel accessed
-[${new Date().toLocaleTimeString()}] INFO: Database backup completed
-[${new Date().toLocaleTimeString()}] INFO: System health check passed`
-          }]);
+          setOutput([]);
           break;
 
         case 'status':
-          setHistory(prev => [...prev, {
-            type: 'output',
-            text: `System Health Status:
-🟢 API Server: Online
-🟢 Database: Connected
-🟢 Cache: Active
-🟢 Storage: Available (85% free)
-🟢 Memory: 2.1GB / 8GB used
-🟢 CPU: 15% usage
-⚡ Uptime: 7 days, 14 hours`
-          }]);
+          addOutput('System Status:', 'success');
+          addOutput('  🟢 Server: Online', 'success');
+          addOutput('  🟢 Database: Connected', 'success');
+          addOutput('  🟢 APIs: Healthy', 'success');
+          addOutput(`  👤 User: ${user?.name} (${user?.role})`, 'info');
+          break;
+
+        case 'whoami':
+          addOutput(`Logged in as: ${user?.name}`, 'success');
+          addOutput(`Role: ${user?.role}`, 'info');
+          addOutput(`Email: ${user?.email}`, 'info');
+          break;
+
+        case 'test-apis':
+          addOutput('🧪 Testing all admin APIs...', 'info');
+          await testAllAPIs();
+          break;
+
+        case 'test-books':
+          addOutput('📚 Testing Books API...', 'info');
+          await testBooksAPI();
+          break;
+
+        case 'test-offers':
+          addOutput('🎁 Testing Offers API...', 'info');
+          await testOffersAPI();
+          break;
+
+        case 'test-users':
+          addOutput('👥 Testing Users API...', 'info');
+          await testUsersAPI();
+          break;
+
+        case 'get-stats':
+          addOutput('📊 Fetching platform statistics...', 'info');
+          await getStats();
           break;
 
         default:
-          if (args[0] === 'user' && args[1] === 'suspend' && args[2]) {
-            setHistory(prev => [...prev, {
-              type: 'output',
-              text: `🔒 User ${args[2]} suspended successfully`
-            }]);
-            toast.success(`User ${args[2]} suspended`);
-          } else if (args[0] === 'user' && args[1] === 'activate' && args[2]) {
-            setHistory(prev => [...prev, {
-              type: 'output',
-              text: `✅ User ${args[2]} activated successfully`
-            }]);
-            toast.success(`User ${args[2]} activated`);
+          if (cmd.startsWith('add-book ')) {
+            const title = command.substring(9);
+            await addTestBook(title);
+          } else if (cmd.startsWith('add-offer ')) {
+            const title = command.substring(10);
+            await addTestOffer(title);
           } else {
-            setHistory(prev => [...prev, {
-              type: 'error',
-              text: `Command not found: ${command}\nType "help" for available commands`
-            }]);
+            addOutput(`Command not found: ${command}`, 'error');
+            addOutput('Type "help" for available commands', 'info');
           }
       }
     } catch (error) {
-      setHistory(prev => [...prev, {
-        type: 'error',
-        text: `Error executing command: ${error.message}`
-      }]);
+      addOutput(`Error: ${error.message}`, 'error');
+    }
+  };
+
+  const testAllAPIs = async () => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+      // Test Books API
+      addOutput('  📚 Testing Books API...', 'info');
+      const booksRes = await axios.get('/api/admin/books', { headers });
+      addOutput(`    ✅ GET /api/admin/books - ${booksRes.data.length} books found`, 'success');
+
+      // Test Offers API
+      addOutput('  🎁 Testing Offers API...', 'info');
+      const offersRes = await axios.get('/api/admin/offers', { headers });
+      addOutput(`    ✅ GET /api/admin/offers - ${offersRes.data.length} offers found`, 'success');
+
+      // Test Users API
+      addOutput('  👥 Testing Users API...', 'info');
+      const usersRes = await axios.get('/api/admin/library-users', { headers });
+      addOutput(`    ✅ GET /api/admin/library-users - ${usersRes.data.length} users found`, 'success');
+
+      addOutput('🎉 All APIs are working correctly!', 'success');
+      toast.success('All APIs tested successfully!');
+
+    } catch (error) {
+      addOutput(`❌ API Test Failed: ${error.response?.data?.message || error.message}`, 'error');
+      addOutput(`   Status: ${error.response?.status}`, 'error');
+      addOutput(`   URL: ${error.config?.url}`, 'error');
+    }
+  };
+
+  const testBooksAPI = async () => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+      // GET Books
+      const getRes = await axios.get('/api/admin/books', { headers });
+      addOutput(`  ✅ GET Books: ${getRes.data.length} books found`, 'success');
+
+      // POST Book
+      const testBook = {
+        title: 'Terminal Test Book',
+        author: 'Terminal Author',
+        genre: 'Technology',
+        totalCopies: 3,
+        availableCopies: 3,
+        isActive: true
+      };
+      const postRes = await axios.post('/api/admin/books', testBook, { headers });
+      addOutput(`  ✅ POST Book: "${postRes.data.title}" created`, 'success');
+
+      // PUT Book
+      const updateBook = { ...testBook, title: 'Updated Terminal Book' };
+      const putRes = await axios.put(`/api/admin/books/${postRes.data._id}`, updateBook, { headers });
+      addOutput(`  ✅ PUT Book: "${putRes.data.title}" updated`, 'success');
+
+      // DELETE Book
+      await axios.delete(`/api/admin/books/${postRes.data._id}`, { headers });
+      addOutput(`  ✅ DELETE Book: Test book deleted`, 'success');
+
+      addOutput('📚 Books API test completed successfully!', 'success');
+
+    } catch (error) {
+      addOutput(`❌ Books API Error: ${error.response?.data?.message || error.message}`, 'error');
+    }
+  };
+
+  const testOffersAPI = async () => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+      // GET Offers
+      const getRes = await axios.get('/api/admin/offers', { headers });
+      addOutput(`  ✅ GET Offers: ${getRes.data.length} offers found`, 'success');
+
+      // POST Offer
+      const testOffer = {
+        title: 'Terminal Test Offer',
+        discount: 15,
+        code: 'TERMINAL15',
+        validUntil: '2024-12-31',
+        isActive: true
+      };
+      const postRes = await axios.post('/api/admin/offers', testOffer, { headers });
+      addOutput(`  ✅ POST Offer: "${postRes.data.title}" created`, 'success');
+
+      // PUT Offer
+      const updateOffer = { ...postRes.data, isActive: false };
+      const putRes = await axios.put(`/api/admin/offers/${postRes.data._id}`, updateOffer, { headers });
+      addOutput(`  ✅ PUT Offer: Status changed to ${putRes.data.isActive ? 'active' : 'inactive'}`, 'success');
+
+      // DELETE Offer
+      await axios.delete(`/api/admin/offers/${postRes.data._id}`, { headers });
+      addOutput(`  ✅ DELETE Offer: Test offer deleted`, 'success');
+
+      addOutput('🎁 Offers API test completed successfully!', 'success');
+
+    } catch (error) {
+      addOutput(`❌ Offers API Error: ${error.response?.data?.message || error.message}`, 'error');
+    }
+  };
+
+  const testUsersAPI = async () => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+      const usersRes = await axios.get('/api/admin/library-users', { headers });
+      addOutput(`  ✅ GET Users: ${usersRes.data.length} users found`, 'success');
+      
+      if (usersRes.data.length > 0) {
+        const user = usersRes.data[0];
+        addOutput(`  📋 Sample User: ${user.name} (${user.email})`, 'info');
+      }
+
+      addOutput('👥 Users API test completed successfully!', 'success');
+
+    } catch (error) {
+      addOutput(`❌ Users API Error: ${error.response?.data?.message || error.message}`, 'error');
+    }
+  };
+
+  const addTestBook = async (title) => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+      const testBook = {
+        title: title || 'Terminal Book',
+        author: 'Terminal Author',
+        genre: 'Technology',
+        totalCopies: 5,
+        availableCopies: 5,
+        isActive: true
+      };
+
+      const response = await axios.post('/api/admin/books', testBook, { headers });
+      addOutput(`✅ Book added: "${response.data.title}"`, 'success');
+      addOutput(`   ID: ${response.data._id}`, 'info');
+      toast.success('Book added via terminal!');
+
+    } catch (error) {
+      addOutput(`❌ Failed to add book: ${error.response?.data?.message || error.message}`, 'error');
+    }
+  };
+
+  const addTestOffer = async (title) => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+      const testOffer = {
+        title: title || 'Terminal Offer',
+        discount: 20,
+        code: `TERM${Date.now().toString().slice(-4)}`,
+        validUntil: '2024-12-31',
+        isActive: true
+      };
+
+      const response = await axios.post('/api/admin/offers', testOffer, { headers });
+      addOutput(`✅ Offer added: "${response.data.title}"`, 'success');
+      addOutput(`   Code: ${response.data.code}`, 'info');
+      addOutput(`   Discount: ${response.data.discount}%`, 'info');
+      toast.success('Offer added via terminal!');
+
+    } catch (error) {
+      addOutput(`❌ Failed to add offer: ${error.response?.data?.message || error.message}`, 'error');
+    }
+  };
+
+  const getStats = async () => {
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    try {
+      const [booksRes, offersRes, usersRes] = await Promise.all([
+        axios.get('/api/admin/books', { headers }),
+        axios.get('/api/admin/offers', { headers }),
+        axios.get('/api/admin/library-users', { headers })
+      ]);
+
+      addOutput('📊 Platform Statistics:', 'success');
+      addOutput(`  📚 Total Books: ${booksRes.data.length}`, 'info');
+      addOutput(`  🎁 Total Offers: ${offersRes.data.length}`, 'info');
+      addOutput(`  👥 Total Users: ${usersRes.data.length}`, 'info');
+      addOutput(`  🟢 Active Offers: ${offersRes.data.filter(o => o.isActive).length}`, 'success');
+      addOutput(`  📖 Available Books: ${booksRes.data.reduce((sum, book) => sum + (book.availableCopies || 0), 0)}`, 'info');
+
+    } catch (error) {
+      addOutput(`❌ Failed to get stats: ${error.response?.data?.message || error.message}`, 'error');
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (input.trim()) {
-      setCommandHistory(prev => [...prev, input]);
+      setHistory(prev => [...prev, input]);
       setHistoryIndex(-1);
       executeCommand(input);
       setInput('');
@@ -181,21 +322,21 @@ ${librariesRes.data.map(lib => `• ${lib.name} - ${lib.area}, ${lib.city} (${li
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
-      if (commandHistory.length > 0) {
-        const newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
+      if (history.length > 0) {
+        const newIndex = historyIndex === -1 ? history.length - 1 : Math.max(0, historyIndex - 1);
         setHistoryIndex(newIndex);
-        setInput(commandHistory[newIndex]);
+        setInput(history[newIndex]);
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex !== -1) {
         const newIndex = historyIndex + 1;
-        if (newIndex >= commandHistory.length) {
+        if (newIndex >= history.length) {
           setHistoryIndex(-1);
           setInput('');
         } else {
           setHistoryIndex(newIndex);
-          setInput(commandHistory[newIndex]);
+          setInput(history[newIndex]);
         }
       }
     }
@@ -204,19 +345,17 @@ ${librariesRes.data.map(lib => `• ${lib.name} - ${lib.area}, ${lib.city} (${li
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
-      <div className={`w-full max-w-4xl h-96 mx-4 rounded-lg border transform transition-all duration-500 animate-scale-in ${
-        isDark ? 'bg-gray-900 border-gray-700' : 'bg-black border-gray-600'
-      }`}>
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+      <div className={`w-full max-w-4xl h-3/4 mx-4 rounded-lg overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-gray-800'} border border-gray-600`}>
         {/* Terminal Header */}
-        <div className={`flex items-center justify-between px-4 py-2 border-b ${
-          isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-600 bg-gray-800'
-        } rounded-t-lg`}>
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-700 border-b border-gray-600">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-white text-sm ml-4">🔐 Super Admin Terminal</span>
+            <div className="flex space-x-1">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+            <span className="text-white text-sm font-mono">Super Admin Terminal</span>
           </div>
           <button
             onClick={onClose}
@@ -226,63 +365,46 @@ ${librariesRes.data.map(lib => `• ${lib.name} - ${lib.area}, ${lib.city} (${li
           </button>
         </div>
 
-        {/* Terminal Content */}
-        <div 
-          ref={terminalRef}
-          className="h-80 overflow-y-auto p-4 font-mono text-sm text-green-400 bg-black"
+        {/* Terminal Output */}
+        <div
+          ref={outputRef}
+          className="flex-1 p-4 overflow-y-auto font-mono text-sm bg-black text-green-400"
+          style={{ height: 'calc(100% - 100px)' }}
         >
-          {history.map((entry, index) => (
+          {output.map((line, index) => (
             <div key={index} className={`mb-1 ${
-              entry.type === 'input' ? 'text-white' :
-              entry.type === 'error' ? 'text-red-400' :
-              entry.type === 'system' ? 'text-cyan-400' :
-              'text-green-400'
+              line.type === 'input' ? 'text-white' :
+              line.type === 'error' ? 'text-red-400' :
+              line.type === 'success' ? 'text-green-400' :
+              line.type === 'info' ? 'text-blue-400' :
+              line.type === 'system' ? 'text-yellow-400' :
+              'text-gray-300'
             }`}>
-              <pre className="whitespace-pre-wrap font-mono">{entry.text}</pre>
+              {line.timestamp && line.type === 'input' && (
+                <span className="text-gray-500 text-xs mr-2">[{line.timestamp}]</span>
+              )}
+              {line.text}
             </div>
           ))}
-          
-          {/* Input Line */}
-          <form onSubmit={handleSubmit} className="flex items-center mt-2">
-            <span className="text-cyan-400 mr-2">$</span>
+        </div>
+
+        {/* Terminal Input */}
+        <div className="px-4 py-2 bg-gray-800 border-t border-gray-600">
+          <form onSubmit={handleSubmit} className="flex items-center">
+            <span className="text-green-400 font-mono mr-2">$</span>
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent text-white outline-none font-mono"
+              className="flex-1 bg-transparent text-white font-mono outline-none"
               placeholder="Enter command..."
               autoComplete="off"
             />
           </form>
         </div>
       </div>
-      
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scale-from-top-right {
-          from { 
-            transform: scale(0.1) translate(200px, -200px);
-            opacity: 0;
-            transform-origin: top right;
-          }
-          to { 
-            transform: scale(1) translate(0, 0);
-            opacity: 1;
-            transform-origin: center;
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-        .animate-scale-in {
-          animation: scale-from-top-right 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-      `}</style>
     </div>
   );
 };

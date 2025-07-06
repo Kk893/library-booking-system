@@ -554,13 +554,13 @@ const AdminDashboard = () => {
                         {user.email}
                       </td>
                       <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {user.totalBookings}
+                        {user.totalBookings || 0}
                       </td>
                       <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {user.lastVisit}
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                     </tr>
-                  ))}
+                  ))
                 </tbody>
               </table>
             </div>
