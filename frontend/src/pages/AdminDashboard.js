@@ -560,7 +560,7 @@ const AdminDashboard = () => {
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                     </tr>
-                  ))
+                  ))}
                 </tbody>
               </table>
             </div>
