@@ -166,14 +166,27 @@ router.post('/libraries', auth, superAdminAuth, async (req, res) => {
 // Update Library
 router.put('/libraries/:id', auth, superAdminAuth, async (req, res) => {
   try {
+    const { adminId } = req.body;
+    
+    // If assigning admin, update both library and admin
+    if (adminId) {
+      // Remove admin from previous library
+      await Library.updateMany({ adminId }, { $unset: { adminId: 1 } });
+      
+      // Update admin's libraryId
+      await User.findByIdAndUpdate(adminId, { libraryId: req.params.id });
+    }
+    
     const library = await Library.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
-    );
+    ).populate('adminId', 'name email');
+    
     if (!library) {
       return res.status(404).json({ message: 'Library not found' });
     }
+    
     res.json(library);
   } catch (error) {
     console.error('Library update error:', error);
@@ -296,6 +309,18 @@ router.get('/users', auth, superAdminAuth, async (req, res) => {
       .populate('libraryId', 'name city')
       .sort({ createdAt: -1 });
     res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get all libraries with admin info (for super admin)
+router.get('/libraries', auth, superAdminAuth, async (req, res) => {
+  try {
+    const libraries = await Library.find()
+      .populate('adminId', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(libraries);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

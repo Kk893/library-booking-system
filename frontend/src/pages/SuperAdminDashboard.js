@@ -1446,13 +1446,17 @@ const SuperAdminDashboard = () => {
                     }`}
                     onClick={async () => {
                       try {
-                        await axios.put(`/api/superadmin/libraries/${assigningLibrary._id}`, { adminId: admin._id });
+                        const token = localStorage.getItem('token');
+                        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                        
+                        await axios.put(`/api/admin/libraries/${assigningLibrary._id}`, { adminId: admin._id }, { headers });
                         toast.success('👨‍💼 Admin assigned to library successfully!');
                         setShowAssignAdmin(false);
                         setAssigningLibrary(null);
                         fetchDashboardData();
                       } catch (error) {
-                        toast.error('Failed to assign admin');
+                        console.error('Assignment error:', error);
+                        toast.error(error.response?.data?.message || 'Failed to assign admin');
                       }
                     }}
                   >
@@ -1487,13 +1491,17 @@ const SuperAdminDashboard = () => {
                     }`}
                     onClick={async () => {
                       try {
-                        await axios.put(`/api/superadmin/libraries/${library._id}`, { adminId: editingAdmin._id });
+                        const token = localStorage.getItem('token');
+                        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                        
+                        await axios.put(`/api/admin/libraries/${library._id}`, { adminId: editingAdmin._id }, { headers });
                         toast.success('🏢 Library assigned to admin successfully!');
                         setShowAssignAdmin(false);
                         setEditingAdmin(null);
                         fetchDashboardData();
                       } catch (error) {
-                        toast.error('Failed to assign library');
+                        console.error('Assignment error:', error);
+                        toast.error(error.response?.data?.message || 'Failed to assign library');
                       }
                     }}
                   >
