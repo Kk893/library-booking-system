@@ -27,7 +27,7 @@ if (!fs.existsSync(profilesDir)) {
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://10.50.155.49:3000'],
+  origin: ['http://localhost:3000'],
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
