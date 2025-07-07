@@ -339,10 +339,65 @@ router.get('/library-users', auth, adminAuth, async (req, res) => {
   }
 });
 
-// Offer Management Routes
-router.get('/offers', auth, adminAuth, async (req, res) => {
+// Admin Offer Management Routes (only admin's own offers)
+router.get('/admin-offers', auth, adminAuth, async (req, res) => {
   try {
-    const offers = await Offer.find().sort({ createdAt: -1 });
+    const offers = await Offer.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+    res.json(offers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.post('/admin-offers', auth, adminAuth, async (req, res) => {
+  try {
+    const offer = new Offer({
+      ...req.body,
+      createdBy: req.user._id,
+      createdByRole: 'admin'
+    });
+    await offer.save();
+    res.status(201).json(offer);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Offer code already exists' });
+    }
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.put('/admin-offers/:id', auth, adminAuth, async (req, res) => {
+  try {
+    const offer = await Offer.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.user._id },
+      req.body,
+      { new: true }
+    );
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found or access denied' });
+    }
+    res.json(offer);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.delete('/admin-offers/:id', auth, adminAuth, async (req, res) => {
+  try {
+    const offer = await Offer.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id });
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found or access denied' });
+    }
+    res.json({ message: 'Offer deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// SuperAdmin Offer Management Routes (all offers)
+router.get('/offers', auth, superAdminAuth, async (req, res) => {
+  try {
+    const offers = await Offer.find().populate('createdBy', 'name email').sort({ createdAt: -1 });
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

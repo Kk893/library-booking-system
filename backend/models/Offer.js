@@ -43,6 +43,16 @@ const offerSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Library',
     default: null
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  createdByRole: {
+    type: String,
+    enum: ['admin', 'superadmin'],
+    default: null
   }
 }, {
   timestamps: true
