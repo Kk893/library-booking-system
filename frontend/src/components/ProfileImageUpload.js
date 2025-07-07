@@ -48,7 +48,7 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
       <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
         {displayImage ? (
           <img 
-            src={displayImage.startsWith('http') ? displayImage : `${process.env.REACT_APP_API_URL || 'http://10.50.155.49:5000'}${displayImage}`} 
+            src={displayImage.startsWith('http') ? displayImage : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${displayImage}`} 
             alt="Profile" 
             className="w-full h-full object-cover"
           />

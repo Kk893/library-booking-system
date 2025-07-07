@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_BASE = 'http://10.50.155.49:5000';
+const API_BASE = 'http://localhost:5000';
 
 async function testAdminAPIs() {
   console.log('🧪 Testing Admin Panel APIs...\n');
