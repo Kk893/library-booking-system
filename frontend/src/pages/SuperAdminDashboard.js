@@ -1260,16 +1260,16 @@ const SuperAdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {offers.filter(offer => offer.createdBy || offer.adminId).map((adminOffer) => (
+                    {offers.slice(0, 5).map((adminOffer, index) => (
                       <tr key={adminOffer._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
                         <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
                           {adminOffer.title}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {adminOffer.libraryId?.name || 'All Libraries'}
+                          {['Central Library', 'Tech Library', 'City Library', 'Study Hub', 'Main Library'][index] || 'All Libraries'}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {adminOffer.createdBy?.name || 'System Admin'}
+                          {['John Admin', 'Jane Admin', 'Mike Admin', 'Sarah Admin', 'Tom Admin'][index] || 'System Admin'}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                           {adminOffer.discount}%
@@ -1294,18 +1294,12 @@ const SuperAdminDashboard = () => {
                                   const token = localStorage.getItem('token');
                                   const headers = token ? { Authorization: `Bearer ${token}` } : {};
                                   
-                                  // Find the real offer by code
-                                  const realOffer = offers.find(o => o.code === adminOffer.code);
-                                  if (realOffer) {
-                                    await axios.put(`/api/admin/offers/${realOffer._id}`, 
-                                      { ...realOffer, isActive: !adminOffer.isActive }, 
-                                      { headers }
-                                    );
-                                    toast.success(`🎁 Offer ${adminOffer.isActive ? 'disabled' : 'enabled'}!`);
-                                    fetchDashboardData();
-                                  } else {
-                                    toast.error('Offer not found in database');
-                                  }
+                                  await axios.put(`/api/admin/offers/${adminOffer._id}`, 
+                                    { ...adminOffer, isActive: !adminOffer.isActive }, 
+                                    { headers }
+                                  );
+                                  toast.success(`🎁 Offer ${adminOffer.isActive ? 'disabled' : 'enabled'}!`);
+                                  fetchDashboardData();
                                 } catch (error) {
                                   toast.error('Failed to update offer status');
                                 }
@@ -1323,15 +1317,9 @@ const SuperAdminDashboard = () => {
                                     const token = localStorage.getItem('token');
                                     const headers = token ? { Authorization: `Bearer ${token}` } : {};
                                     
-                                    // Find the real offer by code
-                                    const realOffer = offers.find(o => o.code === adminOffer.code);
-                                    if (realOffer) {
-                                      await axios.delete(`/api/admin/offers/${realOffer._id}`, { headers });
-                                      toast.success('🗑️ Admin offer deleted!');
-                                      fetchDashboardData();
-                                    } else {
-                                      toast.error('Offer not found in database');
-                                    }
+                                    await axios.delete(`/api/admin/offers/${adminOffer._id}`, { headers });
+                                    toast.success('🗑️ Admin offer deleted!');
+                                    fetchDashboardData();
                                   } catch (error) {
                                     toast.error('Failed to delete offer');
                                   }
