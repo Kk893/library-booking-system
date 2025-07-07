@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import axios from 'axios';
+import axios from '../utils/axios';
 
 const Home = () => {
   const [allLibraries, setAllLibraries] = useState([]);
