@@ -36,6 +36,7 @@ const SuperAdminDashboard = () => {
   const [adminSearch, setAdminSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [offers, setOffers] = useState([]);
+  const [adminOffers, setAdminOffers] = useState([]);
   const [showAddOffer, setShowAddOffer] = useState(false);
   const [newOffer, setNewOffer] = useState({
     title: '',
@@ -88,7 +89,7 @@ const SuperAdminDashboard = () => {
         axios.get('/api/superadmin/libraries'),
         axios.get('/api/superadmin/admins'),
         axios.get('/api/superadmin/users'),
-        axios.get('/api/admin/offers')
+        axios.get('/api/admin/superadmin-offers')
       ]);
       
       setStats(statsRes.data);
@@ -96,6 +97,15 @@ const SuperAdminDashboard = () => {
       setAdmins(adminsRes.data);
       setUsers(usersRes.data);
       setOffers(offersRes.data || []);
+      
+      // Fetch admin offers for management
+      try {
+        const adminOffersRes = await axios.get('/api/admin/all-admin-offers');
+        setAdminOffers(adminOffersRes.data || []);
+      } catch (error) {
+        console.error('Error fetching admin offers:', error);
+        setAdminOffers([]);
+      }
       
       // Generate analytics data based on real stats
       const baseRevenue = statsRes.data.totalRevenue || 25000;
@@ -1179,7 +1189,7 @@ const SuperAdminDashboard = () => {
                 </button>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                {offers.filter(offer => offer.createdByRole === 'superadmin').map((offer) => (
+                {offers.map((offer) => (
                   <div
                     key={offer._id}
                     className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
@@ -1219,7 +1229,7 @@ const SuperAdminDashboard = () => {
                       <button 
                         onClick={() => {
                           if (window.confirm('Are you sure you want to delete this offer?')) {
-                            handleDeleteOffer(offer._id);
+                            handleDeleteSuperAdminOffer(offer._id);
                           }
                         }}
                         className="text-red-500 hover:text-red-600 text-sm"
@@ -1227,7 +1237,7 @@ const SuperAdminDashboard = () => {
                         🗑️ Delete
                       </button>
                       <button 
-                        onClick={() => handleToggleOfferStatus(offer._id, offer.isActive)}
+                        onClick={() => handleToggleSuperAdminOfferStatus(offer._id, offer.isActive)}
                         className={`text-sm px-2 py-1 rounded ${
                           offer.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
                         }`}
@@ -1264,16 +1274,16 @@ const SuperAdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {offers.filter(offer => offer.createdByRole === 'admin').map((adminOffer, index) => (
+                    {adminOffers.map((adminOffer, index) => (
                       <tr key={adminOffer._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
                         <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
                           {adminOffer.title}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {['Central Library', 'Tech Library', 'City Library', 'Study Hub', 'Main Library'][index] || 'All Libraries'}
+                          {adminOffer.libraryId?.name || 'All Libraries'}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {['John Admin', 'Jane Admin', 'Mike Admin', 'Sarah Admin', 'Tom Admin'][index] || 'System Admin'}
+                          {adminOffer.createdBy?.name || 'Admin'}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                           {adminOffer.discount}%
@@ -1298,7 +1308,7 @@ const SuperAdminDashboard = () => {
                                   const token = localStorage.getItem('token');
                                   const headers = token ? { Authorization: `Bearer ${token}` } : {};
                                   
-                                  await axios.put(`/api/admin/offers/${adminOffer._id}`, 
+                                  await axios.put(`/api/admin/manage-admin-offer/${adminOffer._id}`, 
                                     { ...adminOffer, isActive: !adminOffer.isActive }, 
                                     { headers }
                                   );
@@ -1321,7 +1331,7 @@ const SuperAdminDashboard = () => {
                                     const token = localStorage.getItem('token');
                                     const headers = token ? { Authorization: `Bearer ${token}` } : {};
                                     
-                                    await axios.delete(`/api/admin/offers/${adminOffer._id}`, { headers });
+                                    await axios.delete(`/api/admin/manage-admin-offer/${adminOffer._id}`, { headers });
                                     toast.success('🗑️ Admin offer deleted!');
                                     fetchDashboardData();
                                   } catch (error) {
@@ -1717,10 +1727,10 @@ const SuperAdminDashboard = () => {
                 };
                 
                 if (editingOffer) {
-                  await axios.put(`/api/admin/offers/${editingOffer._id}`, offerData, { headers });
+                  await axios.put(`/api/admin/superadmin-offers/${editingOffer._id}`, offerData, { headers });
                   toast.success('🎁 Offer updated successfully!');
                 } else {
-                  await axios.post('/api/admin/offers', offerData, { headers });
+                  await axios.post('/api/admin/superadmin-offers', offerData, { headers });
                   toast.success('🎁 Offer created successfully!');
                 }
                 

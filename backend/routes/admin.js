@@ -339,10 +339,13 @@ router.get('/library-users', auth, adminAuth, async (req, res) => {
   }
 });
 
-// Admin Offer Management Routes (only admin's own offers)
+// Admin Offers - Only admin's own offers
 router.get('/admin-offers', auth, adminAuth, async (req, res) => {
   try {
-    const offers = await Offer.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+    const offers = await Offer.find({ 
+      createdBy: req.user._id,
+      createdByRole: 'admin'
+    }).sort({ createdAt: -1 });
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -369,7 +372,7 @@ router.post('/admin-offers', auth, adminAuth, async (req, res) => {
 router.put('/admin-offers/:id', auth, adminAuth, async (req, res) => {
   try {
     const offer = await Offer.findOneAndUpdate(
-      { _id: req.params.id, createdBy: req.user._id },
+      { _id: req.params.id, createdBy: req.user._id, createdByRole: 'admin' },
       req.body,
       { new: true }
     );
@@ -384,7 +387,11 @@ router.put('/admin-offers/:id', auth, adminAuth, async (req, res) => {
 
 router.delete('/admin-offers/:id', auth, adminAuth, async (req, res) => {
   try {
-    const offer = await Offer.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id });
+    const offer = await Offer.findOneAndDelete({ 
+      _id: req.params.id, 
+      createdBy: req.user._id, 
+      createdByRole: 'admin' 
+    });
     if (!offer) {
       return res.status(404).json({ message: 'Offer not found or access denied' });
     }
@@ -394,10 +401,13 @@ router.delete('/admin-offers/:id', auth, adminAuth, async (req, res) => {
   }
 });
 
-// SuperAdmin Offer Management Routes
+// SuperAdmin Offers - Only superadmin's own offers
 router.get('/superadmin-offers', auth, superAdminAuth, async (req, res) => {
   try {
-    const offers = await Offer.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+    const offers = await Offer.find({ 
+      createdBy: req.user._id,
+      createdByRole: 'superadmin'
+    }).sort({ createdAt: -1 });
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -424,7 +434,7 @@ router.post('/superadmin-offers', auth, superAdminAuth, async (req, res) => {
 router.put('/superadmin-offers/:id', auth, superAdminAuth, async (req, res) => {
   try {
     const offer = await Offer.findOneAndUpdate(
-      { _id: req.params.id, createdBy: req.user._id },
+      { _id: req.params.id, createdBy: req.user._id, createdByRole: 'superadmin' },
       req.body,
       { new: true }
     );
@@ -439,7 +449,11 @@ router.put('/superadmin-offers/:id', auth, superAdminAuth, async (req, res) => {
 
 router.delete('/superadmin-offers/:id', auth, superAdminAuth, async (req, res) => {
   try {
-    const offer = await Offer.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id });
+    const offer = await Offer.findOneAndDelete({ 
+      _id: req.params.id, 
+      createdBy: req.user._id, 
+      createdByRole: 'superadmin' 
+    });
     if (!offer) {
       return res.status(404).json({ message: 'Offer not found or access denied' });
     }
@@ -449,11 +463,45 @@ router.delete('/superadmin-offers/:id', auth, superAdminAuth, async (req, res) =
   }
 });
 
-// Get all offers for SuperAdmin dashboard
-router.get('/offers', auth, superAdminAuth, async (req, res) => {
+// All offers for SuperAdmin to manage admin offers
+router.get('/all-admin-offers', auth, superAdminAuth, async (req, res) => {
   try {
-    const offers = await Offer.find().populate('createdBy', 'name email').sort({ createdAt: -1 });
+    const offers = await Offer.find({ createdByRole: 'admin' })
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 });
     res.json(offers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// SuperAdmin can manage admin offers
+router.put('/manage-admin-offer/:id', auth, superAdminAuth, async (req, res) => {
+  try {
+    const offer = await Offer.findOneAndUpdate(
+      { _id: req.params.id, createdByRole: 'admin' },
+      req.body,
+      { new: true }
+    );
+    if (!offer) {
+      return res.status(404).json({ message: 'Admin offer not found' });
+    }
+    res.json(offer);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.delete('/manage-admin-offer/:id', auth, superAdminAuth, async (req, res) => {
+  try {
+    const offer = await Offer.findOneAndDelete({ 
+      _id: req.params.id, 
+      createdByRole: 'admin' 
+    });
+    if (!offer) {
+      return res.status(404).json({ message: 'Admin offer not found' });
+    }
+    res.json({ message: 'Admin offer deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

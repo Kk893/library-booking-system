@@ -74,7 +74,7 @@ const AdminDashboard = () => {
       const [booksRes, usersRes, offersRes] = await Promise.all([
         axios.get('/api/admin/books', { headers }).catch(() => ({ data: [] })),
         axios.get('/api/admin/library-users', { headers }).catch(() => ({ data: [] })),
-        axios.get('/api/admin/offers', { headers }).catch(() => ({ data: [] }))
+        axios.get('/api/admin/admin-offers', { headers }).catch(() => ({ data: [] }))
       ]);
       
       console.log('Books data:', booksRes.data);
@@ -208,7 +208,7 @@ const AdminDashboard = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       console.log('Adding offer:', offerData);
-      const response = await axios.post('/api/admin/offers', offerData, { headers });
+      const response = await axios.post('/api/admin/admin-offers', offerData, { headers });
       console.log('Offer added response:', response.data);
       
       setOffers([...offers, response.data]);
@@ -234,7 +234,7 @@ const AdminDashboard = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       console.log('Toggling offer:', updatedOffer);
-      const response = await axios.put(`/api/admin/offers/${id}`, updatedOffer, { headers });
+      const response = await axios.put(`/api/admin/admin-offers/${id}`, updatedOffer, { headers });
       console.log('Toggle offer response:', response.data);
       
       setOffers(offers.map(o => o._id === id ? response.data : o));
@@ -253,7 +253,7 @@ const AdminDashboard = () => {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         console.log('Deleting offer:', id);
-        await axios.delete(`/api/admin/offers/${id}`, { headers });
+        await axios.delete(`/api/admin/admin-offers/${id}`, { headers });
         setOffers(offers.filter(offer => offer._id !== id));
         toast.success('🗑️ Offer deleted successfully!');
         fetchAdminData();
