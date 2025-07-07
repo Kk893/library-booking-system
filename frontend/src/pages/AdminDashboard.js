@@ -200,9 +200,7 @@ const AdminDashboard = () => {
     try {
       const offerData = {
         ...newOffer,
-        isActive: true,
-        createdBy: user._id,
-        createdByRole: 'admin'
+        isActive: true
       };
       
       const token = localStorage.getItem('token');

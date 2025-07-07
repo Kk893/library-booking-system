@@ -88,7 +88,7 @@ const SuperAdminDashboard = () => {
         axios.get('/api/superadmin/libraries'),
         axios.get('/api/superadmin/admins'),
         axios.get('/api/superadmin/users'),
-        axios.get('/api/admin/offers')
+        axios.get('/api/admin/superadmin-offers')
       ]);
       
       setStats(statsRes.data);
@@ -269,11 +269,24 @@ const SuperAdminDashboard = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       const offer = offers.find(o => o._id === offerId);
-      await axios.put(`/api/admin/offers/${offerId}`, { ...offer, isActive: !currentStatus }, { headers });
+      await axios.put(`/api/admin/superadmin-offers/${offerId}`, { ...offer, isActive: !currentStatus }, { headers });
       toast.success(`Offer ${!currentStatus ? 'enabled' : 'disabled'} successfully!`);
       fetchDashboardData();
     } catch (error) {
       toast.error('Failed to update offer status');
+    }
+  };
+
+  const handleDeleteSuperAdminOffer = async (offerId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      await axios.delete(`/api/admin/superadmin-offers/${offerId}`, { headers });
+      toast.success('🗑️ Offer deleted successfully!');
+      fetchDashboardData();
+    } catch (error) {
+      toast.error('Failed to delete offer');
     }
   };
 
@@ -1179,7 +1192,7 @@ const SuperAdminDashboard = () => {
                 </button>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                {offers.filter(offer => offer.createdByRole === 'superadmin').map((offer) => (
+                {offers.map((offer) => (
                   <div
                     key={offer._id}
                     className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
@@ -1219,7 +1232,7 @@ const SuperAdminDashboard = () => {
                       <button 
                         onClick={() => {
                           if (window.confirm('Are you sure you want to delete this offer?')) {
-                            handleDeleteOffer(offer._id);
+                            handleDeleteSuperAdminOffer(offer._id);
                           }
                         }}
                         className="text-red-500 hover:text-red-600 text-sm"
@@ -1321,7 +1334,7 @@ const SuperAdminDashboard = () => {
                                     const token = localStorage.getItem('token');
                                     const headers = token ? { Authorization: `Bearer ${token}` } : {};
                                     
-                                    await axios.delete(`/api/admin/offers/${adminOffer._id}`, { headers });
+                                    await axios.delete(`/api/admin/admin-offers/${adminOffer._id}`, { headers });
                                     toast.success('🗑️ Admin offer deleted!');
                                     fetchDashboardData();
                                   } catch (error) {
@@ -1713,16 +1726,14 @@ const SuperAdminDashboard = () => {
                   isActive: editingOffer ? editingOffer.isActive : true,
                   description: `${newOffer.discount}% discount offer`,
                   usageLimit: editingOffer ? editingOffer.usageLimit : 100,
-                  usedCount: editingOffer ? editingOffer.usedCount : 0,
-                  createdBy: user._id,
-                  createdByRole: 'superadmin'
+                  usedCount: editingOffer ? editingOffer.usedCount : 0
                 };
                 
                 if (editingOffer) {
-                  await axios.put(`/api/admin/offers/${editingOffer._id}`, offerData, { headers });
+                  await axios.put(`/api/admin/superadmin-offers/${editingOffer._id}`, offerData, { headers });
                   toast.success('🎁 Offer updated successfully!');
                 } else {
-                  await axios.post('/api/admin/offers', offerData, { headers });
+                  await axios.post('/api/admin/superadmin-offers', offerData, { headers });
                   toast.success('🎁 Offer created successfully!');
                 }
                 
