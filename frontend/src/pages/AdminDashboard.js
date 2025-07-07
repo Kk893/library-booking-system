@@ -83,7 +83,11 @@ const AdminDashboard = () => {
       
       setBooks(booksRes.data || []);
       setLibraryUsers(usersRes.data || []);
-      setOffers(offersRes.data || []);
+      // Filter to show only admin-created offers
+      const adminOffers = (offersRes.data || []).filter(offer => 
+        offer.createdByRole === 'admin' || (!offer.createdByRole && !offer.createdBy)
+      );
+      setOffers(adminOffers);
       
       // Generate realistic stats
       const totalBooks = booksRes.data?.length || 0;
@@ -200,7 +204,9 @@ const AdminDashboard = () => {
     try {
       const offerData = {
         ...newOffer,
-        isActive: true
+        isActive: true,
+        createdBy: user._id,
+        createdByRole: 'admin'
       };
       
       const token = localStorage.getItem('token');

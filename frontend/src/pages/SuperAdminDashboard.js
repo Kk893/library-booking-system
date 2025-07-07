@@ -1179,7 +1179,7 @@ const SuperAdminDashboard = () => {
                 </button>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                {offers.filter(offer => offer.type === 'global' || !offer.type).map((offer) => (
+                {offers.filter(offer => offer.createdByRole === 'superadmin' || (!offer.createdByRole && !offer.createdBy)).map((offer) => (
                   <div
                     key={offer._id}
                     className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
@@ -1260,7 +1260,7 @@ const SuperAdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {offers.slice(0, 5).map((adminOffer, index) => (
+                    {offers.filter(offer => offer.createdByRole === 'admin').slice(0, 5).map((adminOffer, index) => (
                       <tr key={adminOffer._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
                         <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
                           {adminOffer.title}
@@ -1709,7 +1709,9 @@ const SuperAdminDashboard = () => {
                   isActive: editingOffer ? editingOffer.isActive : true,
                   description: `${newOffer.discount}% discount offer`,
                   usageLimit: editingOffer ? editingOffer.usageLimit : 100,
-                  usedCount: editingOffer ? editingOffer.usedCount : 0
+                  usedCount: editingOffer ? editingOffer.usedCount : 0,
+                  createdBy: user._id,
+                  createdByRole: 'superadmin'
                 };
                 
                 if (editingOffer) {
