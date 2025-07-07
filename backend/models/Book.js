@@ -16,7 +16,16 @@ const bookSchema = new mongoose.Schema({
     fine: { type: Number, default: 5 }, // per day
     reservationFee: { type: Number, default: 0 }
   },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  lastModifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Book', bookSchema);

@@ -5,6 +5,12 @@ const Booking = require('../models/Booking');
 const User = require('../models/User');
 const Offer = require('../models/Offer');
 const { auth, adminAuth, superAdminAuth } = require('../middleware/auth');
+const { 
+  checkModifyPermission, 
+  canManageUser, 
+  preventPrivilegeEscalation, 
+  logPrivilegeAction 
+} = require('../middleware/rbac');
 
 const router = express.Router();
 
@@ -58,9 +64,13 @@ router.get('/books', auth, adminAuth, async (req, res) => {
 });
 
 // Add book
-router.post('/books', auth, adminAuth, async (req, res) => {
+router.post('/books', ...adminAuth, logPrivilegeAction('create_book'), async (req, res) => {
   try {
-    const book = new Book(req.body);
+    const book = new Book({
+      ...req.body,
+      createdBy: req.user._id,
+      lastModifiedBy: req.user._id
+    });
     await book.save();
     res.status(201).json(book);
   } catch (error) {
@@ -73,11 +83,11 @@ router.post('/books', auth, adminAuth, async (req, res) => {
 });
 
 // Update book
-router.put('/books/:id', auth, adminAuth, async (req, res) => {
+router.put('/books/:id', ...adminAuth, checkModifyPermission(Book), logPrivilegeAction('update_book'), async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { ...req.body, lastModifiedBy: req.user._id },
       { new: true }
     );
     if (!book) {
@@ -90,11 +100,11 @@ router.put('/books/:id', auth, adminAuth, async (req, res) => {
 });
 
 // Delete book
-router.delete('/books/:id', auth, adminAuth, async (req, res) => {
+router.delete('/books/:id', ...adminAuth, checkModifyPermission(Book), logPrivilegeAction('delete_book'), async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
-      { isActive: false },
+      { isActive: false, lastModifiedBy: req.user._id },
       { new: true }
     );
     if (!book) {
@@ -148,11 +158,13 @@ router.get('/superadmin/dashboard', auth, superAdminAuth, async (req, res) => {
 });
 
 // Create Library
-router.post('/libraries', auth, superAdminAuth, async (req, res) => {
+router.post('/libraries', ...superAdminAuth, logPrivilegeAction('create_library'), async (req, res) => {
   try {
     const libraryData = {
       ...req.body,
-      phone: req.body.phone || '+91-0000000000' // Default phone if not provided
+      phone: req.body.phone || '+91-0000000000',
+      createdBy: req.user._id,
+      lastModifiedBy: req.user._id
     };
     const library = new Library(libraryData);
     await library.save();
@@ -164,7 +176,7 @@ router.post('/libraries', auth, superAdminAuth, async (req, res) => {
 });
 
 // Update Library
-router.put('/libraries/:id', auth, superAdminAuth, async (req, res) => {
+router.put('/libraries/:id', ...superAdminAuth, checkModifyPermission(Library), logPrivilegeAction('update_library'), async (req, res) => {
   try {
     const { adminId } = req.body;
     
@@ -179,7 +191,7 @@ router.put('/libraries/:id', auth, superAdminAuth, async (req, res) => {
     
     const library = await Library.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { ...req.body, lastModifiedBy: req.user._id },
       { new: true }
     ).populate('adminId', 'name email');
     
@@ -195,7 +207,7 @@ router.put('/libraries/:id', auth, superAdminAuth, async (req, res) => {
 });
 
 // Create new library admin (only super admin can do this)
-router.post('/create-admin', auth, superAdminAuth, async (req, res) => {
+router.post('/create-admin', ...superAdminAuth, preventPrivilegeEscalation, logPrivilegeAction('create_admin'), async (req, res) => {
   try {
     const { name, email, phone, password, libraryId } = req.body;
     
@@ -212,11 +224,12 @@ router.post('/create-admin', auth, superAdminAuth, async (req, res) => {
     const admin = new User({
       name,
       email,
-      phone: phone || `+91-${Date.now()}`, // Generate default phone if not provided
+      phone: phone || `+91-${Date.now()}`,
       password,
       role: 'admin',
       isVerified: true,
-      libraryId: libraryId || null
+      libraryId: libraryId || null,
+      createdBy: req.user._id
     });
     await admin.save();
 
@@ -282,7 +295,7 @@ router.get('/admins', auth, superAdminAuth, async (req, res) => {
 });
 
 // Remove admin (for super admin)
-router.delete('/admins/:id', auth, superAdminAuth, async (req, res) => {
+router.delete('/admins/:id', ...superAdminAuth, canManageUser, logPrivilegeAction('delete_admin'), async (req, res) => {
   try {
     const admin = await User.findById(req.params.id);
     if (!admin || admin.role !== 'admin') {
@@ -371,14 +384,31 @@ router.post('/admin-offers', auth, adminAuth, async (req, res) => {
 
 router.put('/admin-offers/:id', auth, adminAuth, async (req, res) => {
   try {
+    const existingOffer = await Offer.findOne({ 
+      _id: req.params.id, 
+      createdBy: req.user._id, 
+      createdByRole: 'admin' 
+    });
+    
+    if (!existingOffer) {
+      return res.status(404).json({ message: 'Offer not found or access denied' });
+    }
+
+    // Check if superadmin has disabled this offer
+    if (existingOffer.disabledByRole === 'superadmin' && req.body.isActive === true) {
+      return res.status(403).json({ 
+        message: 'Cannot enable offer. This offer has been disabled by SuperAdmin. Contact SuperAdmin to re-enable.',
+        disabledBySuperAdmin: true,
+        cannotModify: true
+      });
+    }
+
     const offer = await Offer.findOneAndUpdate(
       { _id: req.params.id, createdBy: req.user._id, createdByRole: 'admin' },
       req.body,
       { new: true }
     );
-    if (!offer) {
-      return res.status(404).json({ message: 'Offer not found or access denied' });
-    }
+    
     res.json(offer);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -478,9 +508,20 @@ router.get('/all-admin-offers', auth, superAdminAuth, async (req, res) => {
 // SuperAdmin can manage admin offers
 router.put('/manage-admin-offer/:id', auth, superAdminAuth, async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    
+    // Track who disabled the offer
+    if (req.body.isActive === false) {
+      updateData.disabledBy = req.user._id;
+      updateData.disabledByRole = 'superadmin';
+    } else if (req.body.isActive === true) {
+      updateData.disabledBy = null;
+      updateData.disabledByRole = null;
+    }
+
     const offer = await Offer.findOneAndUpdate(
       { _id: req.params.id, createdByRole: 'admin' },
-      req.body,
+      updateData,
       { new: true }
     );
     if (!offer) {

@@ -3,7 +3,8 @@ const User = require('../models/User');
 const Booking = require('../models/Booking');
 const Library = require('../models/Library');
 const Book = require('../models/Book');
-const { auth } = require('../middleware/auth');
+const { auth, userAuth } = require('../middleware/auth');
+const { canManageUser, preventPrivilegeEscalation, logPrivilegeAction } = require('../middleware/rbac');
 
 const router = express.Router();
 
@@ -74,15 +75,54 @@ router.get('/profile', auth, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', ...userAuth, preventPrivilegeEscalation, logPrivilegeAction('update_profile'), async (req, res) => {
   try {
-    const { name, phone, address, city } = req.body;
+    const { name, phone, address, city, role } = req.body;
+    
+    // Users cannot change their role
+    if (role && role !== req.user.role) {
+      return res.status(403).json({ message: 'Cannot change user role' });
+    }
     
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, phone, address, city },
+      { name, phone, address, city, lastModifiedBy: req.user._id },
       { new: true }
     ).select('-password');
+    
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Admin/SuperAdmin can update any user (with privilege checks)
+router.put('/users/:userId', auth, canManageUser, preventPrivilegeEscalation, logPrivilegeAction('admin_update_user'), async (req, res) => {
+  try {
+    const { name, phone, address, city, role, isActive } = req.body;
+    const targetUserId = req.params.userId;
+    
+    const updateData = { name, phone, address, city, lastModifiedBy: req.user._id };
+    
+    // Only allow role changes if user has sufficient privileges
+    if (role) {
+      updateData.role = role;
+    }
+    
+    // Only admins+ can deactivate users
+    if (typeof isActive === 'boolean') {
+      updateData.isActive = isActive;
+    }
+    
+    const user = await User.findByIdAndUpdate(
+      targetUserId,
+      updateData,
+      { new: true }
+    ).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
     
     res.json(user);
   } catch (error) {

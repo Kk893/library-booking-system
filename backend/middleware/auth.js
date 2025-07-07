@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { requireRole, logPrivilegeAction } = require('./rbac');
 
 const auth = async (req, res, next) => {
   try {
@@ -15,6 +16,10 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid token.' });
     }
 
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'Account is deactivated.' });
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -22,26 +27,9 @@ const auth = async (req, res, next) => {
   }
 };
 
-const adminAuth = (req, res, next) => {
-  // Check if user has admin or superadmin role
-  if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
-    return res.status(403).json({ message: 'Access denied. Admin role required.' });
-  }
-  
-  // Super admin bypasses all restrictions
-  if (req.user.role === 'superadmin') {
-    return next();
-  }
-  
-  // Regular admin needs library assignment (but we'll allow access for now)
-  next();
-};
+// Use RBAC middleware for role-based access
+const adminAuth = [auth, requireRole('admin'), logPrivilegeAction('admin_access')];
+const superAdminAuth = [auth, requireRole('superadmin'), logPrivilegeAction('superadmin_access')];
+const userAuth = [auth, requireRole('user')];
 
-const superAdminAuth = (req, res, next) => {
-  if (req.user.role !== 'superadmin') {
-    return res.status(403).json({ message: 'Access denied. Super admin role required.' });
-  }
-  next();
-};
-
-module.exports = { auth, adminAuth, superAdminAuth };
+module.exports = { auth, adminAuth, superAdminAuth, userAuth };

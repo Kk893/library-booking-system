@@ -53,6 +53,16 @@ const offerSchema = new mongoose.Schema({
     type: String,
     enum: ['admin', 'superadmin'],
     default: null
+  },
+  disabledBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  disabledByRole: {
+    type: String,
+    enum: ['admin', 'superadmin'],
+    default: null
   }
 }, {
   timestamps: true

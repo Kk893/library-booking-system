@@ -34,7 +34,16 @@ const librarySchema = new mongoose.Schema({
     startTime: String,
     endTime: String,
     isActive: { type: Boolean, default: true }
-  }]
+  }],
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  lastModifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Library', librarySchema);

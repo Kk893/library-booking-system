@@ -70,6 +70,23 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Library',
     default: null
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  lastModifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  privilegeLevel: {
+    type: Number,
+    default: function() {
+      const levels = { user: 1, admin: 2, superadmin: 3 };
+      return levels[this.role] || 1;
+    }
   }
 }, {
   timestamps: true
