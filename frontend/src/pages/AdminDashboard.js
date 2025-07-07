@@ -642,7 +642,11 @@ const AdminDashboard = () => {
                       {offer.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
                     </button>
                     <button 
-                      onClick={() => handleDeleteOffer(offer._id)}
+                      onClick={() => {
+                        if (window.confirm('Are you sure you want to delete this offer?')) {
+                          handleDeleteOffer(offer._id);
+                        }
+                      }}
                       className="text-red-500 hover:text-red-600 text-sm"
                     >
                       🗑️ Delete

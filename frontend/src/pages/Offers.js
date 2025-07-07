@@ -15,7 +15,7 @@ const Offers = () => {
 
   const fetchOffers = async () => {
     try {
-      const response = await axios.get('/api/offers');
+      const response = await axios.get('/api/offers/public-offers');
       setOffers(response.data || []);
     } catch (error) {
       console.error('Error fetching offers:', error);
