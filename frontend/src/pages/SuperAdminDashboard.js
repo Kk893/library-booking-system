@@ -1260,20 +1260,16 @@ const SuperAdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { _id: 'a1', title: 'Library Special 20%', library: 'Central Library', admin: 'John Admin', discount: 20, code: 'CENTRAL20', isActive: true },
-                      { _id: 'a2', title: 'Student Hours Discount', library: 'Tech Library', admin: 'Jane Admin', discount: 15, code: 'STUDENT15', isActive: true },
-                      { _id: 'a3', title: 'Weekend Reading', library: 'City Library', admin: 'Mike Admin', discount: 10, code: 'WEEKEND10', isActive: false }
-                    ].map((adminOffer) => (
+                    {offers.filter(offer => offer.createdBy || offer.adminId).map((adminOffer) => (
                       <tr key={adminOffer._id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
                         <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
                           {adminOffer.title}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {adminOffer.library}
+                          {adminOffer.libraryId?.name || 'All Libraries'}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          {adminOffer.admin}
+                          {adminOffer.createdBy?.name || 'System Admin'}
                         </td>
                         <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                           {adminOffer.discount}%
@@ -1293,8 +1289,26 @@ const SuperAdminDashboard = () => {
                         <td className="py-3 px-4">
                           <div className="flex space-x-2">
                             <button 
-                              onClick={() => {
-                                toast.success(`🎁 Offer ${adminOffer.isActive ? 'deactivated' : 'activated'}!`);
+                              onClick={async () => {
+                                try {
+                                  const token = localStorage.getItem('token');
+                                  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                                  
+                                  // Find the real offer by code
+                                  const realOffer = offers.find(o => o.code === adminOffer.code);
+                                  if (realOffer) {
+                                    await axios.put(`/api/admin/offers/${realOffer._id}`, 
+                                      { ...realOffer, isActive: !adminOffer.isActive }, 
+                                      { headers }
+                                    );
+                                    toast.success(`🎁 Offer ${adminOffer.isActive ? 'disabled' : 'enabled'}!`);
+                                    fetchDashboardData();
+                                  } else {
+                                    toast.error('Offer not found in database');
+                                  }
+                                } catch (error) {
+                                  toast.error('Failed to update offer status');
+                                }
                               }}
                               className={`text-sm px-3 py-1 rounded ${
                                 adminOffer.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
@@ -1303,9 +1317,24 @@ const SuperAdminDashboard = () => {
                               {adminOffer.isActive ? '⏸️ Disable' : '▶️ Enable'}
                             </button>
                             <button 
-                              onClick={() => {
+                              onClick={async () => {
                                 if (window.confirm('Are you sure you want to delete this admin offer?')) {
-                                  toast.success('🗑️ Admin offer deleted!');
+                                  try {
+                                    const token = localStorage.getItem('token');
+                                    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                                    
+                                    // Find the real offer by code
+                                    const realOffer = offers.find(o => o.code === adminOffer.code);
+                                    if (realOffer) {
+                                      await axios.delete(`/api/admin/offers/${realOffer._id}`, { headers });
+                                      toast.success('🗑️ Admin offer deleted!');
+                                      fetchDashboardData();
+                                    } else {
+                                      toast.error('Offer not found in database');
+                                    }
+                                  } catch (error) {
+                                    toast.error('Failed to delete offer');
+                                  }
                                 }
                               }}
                               className="text-red-500 hover:text-red-600 text-sm"
