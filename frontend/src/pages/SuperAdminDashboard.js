@@ -35,10 +35,7 @@ const SuperAdminDashboard = () => {
   const [librarySearch, setLibrarySearch] = useState('');
   const [adminSearch, setAdminSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
-  const [offers, setOffers] = useState([
-    { _id: '1', title: '50% Off First Booking', discount: 50, code: 'FIRST50', isActive: true, validUntil: '2024-12-31' },
-    { _id: '2', title: 'Student Discount', discount: 30, code: 'STUDENT30', isActive: true, validUntil: '2024-12-31' }
-  ]);
+  const [offers, setOffers] = useState([]);
   const [showAddOffer, setShowAddOffer] = useState(false);
   const [newOffer, setNewOffer] = useState({
     title: '',
@@ -46,6 +43,7 @@ const SuperAdminDashboard = () => {
     code: '',
     validUntil: ''
   });
+  const [editingOffer, setEditingOffer] = useState(null);
   const [analyticsData, setAnalyticsData] = useState({
     monthlyRevenue: [12000, 15000, 18000, 22000, 25000, 28000],
     monthlyUsers: [45, 52, 68, 75, 82, 95],
@@ -85,17 +83,19 @@ const SuperAdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, librariesRes, adminsRes, usersRes] = await Promise.all([
+      const [statsRes, librariesRes, adminsRes, usersRes, offersRes] = await Promise.all([
         axios.get('/api/superadmin/stats'),
         axios.get('/api/superadmin/libraries'),
         axios.get('/api/superadmin/admins'),
-        axios.get('/api/superadmin/users')
+        axios.get('/api/superadmin/users'),
+        axios.get('/api/admin/offers')
       ]);
       
       setStats(statsRes.data);
       setLibraries(librariesRes.data);
       setAdmins(adminsRes.data);
       setUsers(usersRes.data);
+      setOffers(offersRes.data || []);
       
       // Generate analytics data based on real stats
       const baseRevenue = statsRes.data.totalRevenue || 25000;
@@ -235,6 +235,46 @@ const SuperAdminDashboard = () => {
   const handleEditLibrary = (library) => {
     setEditingLibrary(library);
     setShowEditLibrary(true);
+  };
+
+  const handleEditOffer = (offer) => {
+    setNewOffer({
+      title: offer.title,
+      discount: offer.discount,
+      code: offer.code,
+      validUntil: offer.validUntil.split('T')[0]
+    });
+    setEditingOffer(offer);
+    setShowAddOffer(true);
+  };
+
+  const handleDeleteOffer = async (offerId) => {
+    if (window.confirm('Are you sure you want to delete this offer?')) {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        await axios.delete(`/api/admin/offers/${offerId}`, { headers });
+        toast.success('🗑️ Offer deleted successfully!');
+        fetchDashboardData();
+      } catch (error) {
+        toast.error('Failed to delete offer');
+      }
+    }
+  };
+
+  const handleToggleOfferStatus = async (offerId, currentStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      const offer = offers.find(o => o._id === offerId);
+      await axios.put(`/api/admin/offers/${offerId}`, { ...offer, isActive: !currentStatus }, { headers });
+      toast.success(`Offer ${!currentStatus ? 'enabled' : 'disabled'} successfully!`);
+      fetchDashboardData();
+    } catch (error) {
+      toast.error('Failed to update offer status');
+    }
   };
 
   if (loading) {
@@ -1170,8 +1210,26 @@ const SuperAdminDashboard = () => {
                       </p>
                     </div>
                     <div className="flex space-x-2 mt-4">
-                      <button className="text-blue-500 hover:text-blue-600 text-sm">✏️ Edit</button>
-                      <button className="text-red-500 hover:text-red-600 text-sm">🗑️ Delete</button>
+                      <button 
+                        onClick={() => handleEditOffer(offer)}
+                        className="text-blue-500 hover:text-blue-600 text-sm"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteOffer(offer._id)}
+                        className="text-red-500 hover:text-red-600 text-sm"
+                      >
+                        🗑️ Delete
+                      </button>
+                      <button 
+                        onClick={() => handleToggleOfferStatus(offer._id, offer.isActive)}
+                        className={`text-sm px-2 py-1 rounded ${
+                          offer.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'
+                        }`}
+                      >
+                        {offer.isActive ? '⏸️ Disable' : '▶️ Enable'}
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1621,14 +1679,37 @@ const SuperAdminDashboard = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
           <div className={`rounded-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-500 animate-scale-add ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
             <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              Create New Offer
+              {editingOffer ? 'Edit Offer' : 'Create New Offer'}
             </h3>
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
-              setOffers([...offers, { ...newOffer, _id: Date.now().toString(), isActive: true }]);
-              setShowAddOffer(false);
-              setNewOffer({ title: '', discount: 0, code: '', validUntil: '' });
-              toast.success('🎁 Offer created successfully!');
+              try {
+                const token = localStorage.getItem('token');
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                
+                const offerData = {
+                  ...newOffer,
+                  isActive: editingOffer ? editingOffer.isActive : true,
+                  description: `${newOffer.discount}% discount offer`,
+                  usageLimit: editingOffer ? editingOffer.usageLimit : 100,
+                  usedCount: editingOffer ? editingOffer.usedCount : 0
+                };
+                
+                if (editingOffer) {
+                  await axios.put(`/api/admin/offers/${editingOffer._id}`, offerData, { headers });
+                  toast.success('🎁 Offer updated successfully!');
+                } else {
+                  await axios.post('/api/admin/offers', offerData, { headers });
+                  toast.success('🎁 Offer created successfully!');
+                }
+                
+                setShowAddOffer(false);
+                setNewOffer({ title: '', discount: 0, code: '', validUntil: '' });
+                setEditingOffer(null);
+                fetchDashboardData();
+              } catch (error) {
+                toast.error(error.response?.data?.message || `Failed to ${editingOffer ? 'update' : 'create'} offer`);
+              }
             }} className="space-y-4">
               <input
                 type="text"
@@ -1677,11 +1758,15 @@ const SuperAdminDashboard = () => {
                   type="submit"
                   className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white py-2 rounded-lg font-semibold"
                 >
-                  Create Offer
+                  {editingOffer ? 'Update Offer' : 'Create Offer'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowAddOffer(false)}
+                  onClick={() => {
+                    setShowAddOffer(false);
+                    setNewOffer({ title: '', discount: 0, code: '', validUntil: '' });
+                    setEditingOffer(null);
+                  }}
                   className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold"
                 >
                   Cancel
