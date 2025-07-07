@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import ProfileDropdown from './ProfileDropdown';
 import toast from 'react-hot-toast';
-import axios from '../utils/axios';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { isDark } = useTheme();
-  const [offers, setOffers] = useState([]);
-  const [showOffers, setShowOffers] = useState(false);
   
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -38,19 +35,6 @@ const Navbar = () => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [user, navigate]);
-
-  useEffect(() => {
-    fetchOffers();
-  }, []);
-
-  const fetchOffers = async () => {
-    try {
-      const response = await axios.get('/api/offers/public-offers');
-      setOffers(response.data.slice(0, 3) || []);
-    } catch (error) {
-      console.error('Error fetching offers:', error);
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -109,79 +93,11 @@ const Navbar = () => {
                 👑 Super Admin
               </Link>
             )}
-            <div className="relative">
-              <button 
-                onMouseEnter={() => setShowOffers(true)}
-                onMouseLeave={() => setShowOffers(false)}
-                className={`font-medium transition-colors ${
-                  isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
-                }`}
-              >
-                🎁 Offers
-              </button>
-              {showOffers && (
-                <div 
-                  onMouseEnter={() => setShowOffers(true)}
-                  onMouseLeave={() => setShowOffers(false)}
-                  className={`absolute top-full left-0 mt-2 w-80 rounded-lg shadow-lg border z-50 ${
-                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                  }`}
-                >
-                  <div className="p-4">
-                    <h3 className={`font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                      🔥 Hot Offers
-                    </h3>
-                    {offers.length > 0 ? (
-                      <div className="space-y-3">
-                        {offers.map((offer) => (
-                          <div key={offer._id} className={`p-3 rounded-lg ${
-                            isDark ? 'bg-gray-700' : 'bg-gray-50'
-                          }`}>
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                                {offer.title}
-                              </h4>
-                              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                {offer.discount}% OFF
-                              </span>
-                            </div>
-                            <p className={`text-xs mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                              {offer.description}
-                            </p>
-                            <div className="flex justify-between items-center">
-                              <code className={`text-xs px-2 py-1 rounded ${
-                                isDark ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-800'
-                              }`}>
-                                {offer.code}
-                              </code>
-                              <button 
-                                onClick={() => {
-                                  navigator.clipboard.writeText(offer.code);
-                                  toast.success('Code copied!');
-                                }}
-                                className="text-xs text-blue-500 hover:text-blue-600"
-                              >
-                                Copy
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        <Link 
-                          to="/offers"
-                          className="block text-center text-blue-500 hover:text-blue-600 text-sm font-medium mt-3"
-                        >
-                          View All Offers →
-                        </Link>
-                      </div>
-                    ) : (
-                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        No offers available
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            <Link to="/offers" className={`font-medium transition-colors ${
+              isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
+            }`}>
+              🎁 Offers
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
