@@ -22,11 +22,28 @@ router.get('/', async (req, res) => {
       query.city = city;
     }
     
+    const Rating = require('../models/Rating');
     const libraries = await Library.find(query)
       .populate('adminId', 'name email')
       .sort({ createdAt: -1 });
     
-    res.json(libraries);
+    // Add rating data to each library
+    const librariesWithRatings = await Promise.all(
+      libraries.map(async (library) => {
+        const ratings = await Rating.find({ libraryId: library._id, isActive: true });
+        const avgRating = ratings.length > 0 
+          ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+          : 0;
+        
+        return {
+          ...library.toObject(),
+          averageRating: Math.round(avgRating * 10) / 10,
+          totalRatings: ratings.length
+        };
+      })
+    );
+    
+    res.json(librariesWithRatings);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -35,6 +52,7 @@ router.get('/', async (req, res) => {
 // Get single library by ID
 router.get('/:id', async (req, res) => {
   try {
+    const Rating = require('../models/Rating');
     const library = await Library.findById(req.params.id)
       .populate('adminId', 'name email');
     
@@ -42,7 +60,19 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Library not found' });
     }
     
-    res.json(library);
+    // Add rating data
+    const ratings = await Rating.find({ libraryId: library._id, isActive: true });
+    const avgRating = ratings.length > 0 
+      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+      : 0;
+    
+    const libraryWithRating = {
+      ...library.toObject(),
+      averageRating: Math.round(avgRating * 10) / 10,
+      totalRatings: ratings.length
+    };
+    
+    res.json(libraryWithRating);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

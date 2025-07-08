@@ -178,7 +178,7 @@ const Libraries = () => {
                   <div className="flex items-center">
                     <span className="text-yellow-500">⭐</span>
                     <span className={`text-sm ml-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      4.{Math.floor(Math.random() * 5) + 3}
+                      {library.averageRating > 0 ? library.averageRating : 'No ratings'} ({library.totalRatings || 0})
                     </span>
                   </div>
                   <Link

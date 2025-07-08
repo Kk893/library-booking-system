@@ -305,7 +305,9 @@ const LibraryDetails = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Rating</span>
-                  <span className="font-bold text-yellow-500">⭐ 4.{Math.floor(Math.random() * 5) + 3}</span>
+                  <span className="font-bold text-yellow-500">
+                    ⭐ {library.averageRating > 0 ? library.averageRating : 'No ratings'}
+                  </span>
                 </div>
               </div>
             </div>

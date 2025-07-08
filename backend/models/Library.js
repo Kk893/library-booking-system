@@ -46,4 +46,24 @@ const librarySchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Virtual field for average rating
+librarySchema.virtual('averageRating', {
+  ref: 'Rating',
+  localField: '_id',
+  foreignField: 'libraryId',
+  justOne: false
+});
+
+// Method to calculate average rating
+librarySchema.methods.getAverageRating = async function() {
+  const Rating = require('./Rating');
+  const ratings = await Rating.find({ libraryId: this._id, isActive: true });
+  if (ratings.length === 0) return 0;
+  const sum = ratings.reduce((acc, rating) => acc + rating.rating, 0);
+  return Math.round((sum / ratings.length) * 10) / 10;
+};
+
+librarySchema.set('toJSON', { virtuals: true });
+librarySchema.set('toObject', { virtuals: true });
+
 module.exports = mongoose.model('Library', librarySchema);
