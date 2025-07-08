@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import SeatSelection from '../components/SeatSelection';
 import OfferModal from '../components/OfferModal';
+import RatingComponent from '../components/RatingComponent';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -418,6 +419,9 @@ const LibraryDetails = () => {
             </div>
           </div>
         )}
+        
+        {/* Ratings Section */}
+        <RatingComponent libraryId={library._id} />
       </div>
 
       {/* Booking Modal */}

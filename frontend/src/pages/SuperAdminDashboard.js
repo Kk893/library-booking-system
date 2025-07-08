@@ -415,6 +415,7 @@ const SuperAdminDashboard = () => {
               { id: 'admins', label: '👨‍💼 Admins' },
               { id: 'users', label: '👥 Users' },
               { id: 'offers', label: '🎁 Offers' },
+              { id: 'ratings', label: '⭐ Ratings' },
               { id: 'settings', label: '⚙️ Settings' },
               { id: 'system', label: '🔧 System' },
               { id: 'analytics', label: '📈 Analytics' }
@@ -1387,6 +1388,19 @@ const SuperAdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'ratings' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              ⭐ Ratings Management
+            </h2>
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">⭐</div>
+              <p className={`text-lg ${isDark ? 'text-white' : 'text-gray-800'}`}>Ratings management coming soon!</p>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>View and moderate library ratings</p>
             </div>
           </div>
         )}
