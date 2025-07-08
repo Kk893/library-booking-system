@@ -57,6 +57,16 @@ const SuperAdminDashboard = () => {
     ]
   });
   const [showTerminal, setShowTerminal] = useState(false);
+  const [platformSettings, setPlatformSettings] = useState({
+    maintenanceMode: false,
+    userRegistration: true,
+    emailNotifications: true,
+    paymentGateway: true,
+    twoFactorAuth: false,
+    sessionTimeout: 24,
+    passwordPolicy: 'strong',
+    apiRateLimit: true
+  });
   const [newLibrary, setNewLibrary] = useState({
     name: '',
     address: '',
@@ -1390,48 +1400,76 @@ const SuperAdminDashboard = () => {
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Maintenance Mode</span>
                   <button 
                     onClick={() => {
-                      toast.success('🔧 Maintenance mode toggled!');
-                      // In real app, this would toggle maintenance mode
+                      const newMode = !platformSettings.maintenanceMode;
+                      setPlatformSettings({...platformSettings, maintenanceMode: newMode});
+                      if (newMode) {
+                        toast.error('🔧 Maintenance mode ENABLED - Site is now offline!');
+                      } else {
+                        toast.success('✅ Maintenance mode DISABLED - Site is back online!');
+                      }
                     }}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    className={`px-3 py-1 rounded text-sm transition-all ${
+                      platformSettings.maintenanceMode 
+                        ? 'bg-red-500 hover:bg-red-600 text-white' 
+                        : 'bg-gray-500 hover:bg-gray-600 text-white'
+                    }`}
                   >
-                    🔧 Enable
+                    {platformSettings.maintenanceMode ? '🔴 ON' : '🔧 OFF'}
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>User Registration</span>
                   <button 
                     onClick={() => {
-                      toast.success('👥 User registration toggled!');
-                      // In real app, this would toggle user registration
+                      const newStatus = !platformSettings.userRegistration;
+                      setPlatformSettings({...platformSettings, userRegistration: newStatus});
+                      toast.success(`👥 User registration ${newStatus ? 'ENABLED' : 'DISABLED'}!`);
                     }}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    className={`px-3 py-1 rounded text-sm transition-all ${
+                      platformSettings.userRegistration 
+                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        : 'bg-red-500 hover:bg-red-600 text-white'
+                    }`}
                   >
-                    ✅ Enabled
+                    {platformSettings.userRegistration ? '✅ ON' : '❌ OFF'}
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Email Notifications</span>
                   <button 
                     onClick={() => {
-                      toast.success('📧 Email notifications toggled!');
-                      // In real app, this would toggle email notifications
+                      const newStatus = !platformSettings.emailNotifications;
+                      setPlatformSettings({...platformSettings, emailNotifications: newStatus});
+                      toast.success(`📧 Email notifications ${newStatus ? 'ENABLED' : 'DISABLED'}!`);
                     }}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    className={`px-3 py-1 rounded text-sm transition-all ${
+                      platformSettings.emailNotifications 
+                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        : 'bg-red-500 hover:bg-red-600 text-white'
+                    }`}
                   >
-                    📧 Active
+                    {platformSettings.emailNotifications ? '📧 ON' : '📧 OFF'}
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Payment Gateway</span>
                   <button 
                     onClick={() => {
-                      toast.success('💳 Payment gateway status checked!');
-                      // In real app, this would check payment gateway status
+                      const newStatus = !platformSettings.paymentGateway;
+                      setPlatformSettings({...platformSettings, paymentGateway: newStatus});
+                      if (newStatus) {
+                        toast.success('💳 Payment gateway ONLINE!');
+                      } else {
+                        toast.error('💳 Payment gateway OFFLINE!');
+                      }
                     }}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    className={`px-3 py-1 rounded text-sm transition-all ${
+                      platformSettings.paymentGateway 
+                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        : 'bg-red-500 hover:bg-red-600 text-white'
+                    }`}
                   >
-                    💳 Online
+                    {platformSettings.paymentGateway ? '💳 ONLINE' : '💳 OFFLINE'}
                   </button>
                 </div>
               </div>
@@ -1444,51 +1482,153 @@ const SuperAdminDashboard = () => {
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Two-Factor Auth</span>
                   <button 
                     onClick={() => {
-                      toast.success('🔐 Two-factor authentication configured!');
-                      // In real app, this would configure 2FA
+                      const newStatus = !platformSettings.twoFactorAuth;
+                      setPlatformSettings({...platformSettings, twoFactorAuth: newStatus});
+                      if (newStatus) {
+                        toast.success('🔐 Two-factor authentication ENABLED!');
+                      } else {
+                        toast.error('🔐 Two-factor authentication DISABLED!');
+                      }
                     }}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    className={`px-3 py-1 rounded text-sm transition-all ${
+                      platformSettings.twoFactorAuth 
+                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                    }`}
                   >
-                    ⚠️ Configure
+                    {platformSettings.twoFactorAuth ? '🔐 ON' : '⚠️ OFF'}
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Session Timeout</span>
                   <button 
                     onClick={() => {
-                      const newTimeout = prompt('Enter session timeout (hours):', '24');
-                      if (newTimeout) {
+                      const newTimeout = prompt('Enter session timeout (hours):', platformSettings.sessionTimeout.toString());
+                      if (newTimeout && !isNaN(newTimeout) && newTimeout > 0) {
+                        setPlatformSettings({...platformSettings, sessionTimeout: parseInt(newTimeout)});
                         toast.success(`⏰ Session timeout set to ${newTimeout} hours!`);
+                      } else if (newTimeout) {
+                        toast.error('❌ Please enter a valid number!');
                       }
                     }}
-                    className={`text-sm px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-all`}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-all"
                   >
-                    ⏰ 24 hours
+                    ⏰ {platformSettings.sessionTimeout}h
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Password Policy</span>
                   <button 
                     onClick={() => {
-                      toast.success('🔒 Password policy updated!');
-                      // In real app, this would update password policy
+                      const policies = ['weak', 'medium', 'strong', 'very-strong'];
+                      const currentIndex = policies.indexOf(platformSettings.passwordPolicy);
+                      const nextPolicy = policies[(currentIndex + 1) % policies.length];
+                      setPlatformSettings({...platformSettings, passwordPolicy: nextPolicy});
+                      toast.success(`🔒 Password policy set to: ${nextPolicy.toUpperCase()}!`);
                     }}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    className={`px-3 py-1 rounded text-sm transition-all ${
+                      platformSettings.passwordPolicy === 'very-strong' ? 'bg-green-600 hover:bg-green-700' :
+                      platformSettings.passwordPolicy === 'strong' ? 'bg-green-500 hover:bg-green-600' :
+                      platformSettings.passwordPolicy === 'medium' ? 'bg-yellow-500 hover:bg-yellow-600' :
+                      'bg-red-500 hover:bg-red-600'
+                    } text-white`}
                   >
-                    🔒 Update
+                    🔒 {platformSettings.passwordPolicy.toUpperCase()}
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>API Rate Limiting</span>
                   <button 
                     onClick={() => {
-                      toast.success('⚡ API rate limits configured!');
-                      // In real app, this would configure rate limits
+                      const newStatus = !platformSettings.apiRateLimit;
+                      setPlatformSettings({...platformSettings, apiRateLimit: newStatus});
+                      toast.success(`⚡ API rate limiting ${newStatus ? 'ENABLED' : 'DISABLED'}!`);
                     }}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    className={`px-3 py-1 rounded text-sm transition-all ${
+                      platformSettings.apiRateLimit 
+                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        : 'bg-red-500 hover:bg-red-600 text-white'
+                    }`}
                   >
-                    ⚡ Configure
+                    {platformSettings.apiRateLimit ? '⚡ ON' : '⚡ OFF'}
                   </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Advanced Settings */}
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>🔧 Advanced Settings</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Debug Mode</span>
+                    <button 
+                      onClick={() => {
+                        const newDebug = !platformSettings.debugMode;
+                        setPlatformSettings({...platformSettings, debugMode: newDebug});
+                        toast.success(`🐛 Debug mode ${newDebug ? 'ENABLED' : 'DISABLED'}!`);
+                      }}
+                      className={`px-3 py-1 rounded text-sm transition-all ${
+                        platformSettings.debugMode 
+                          ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                          : 'bg-gray-500 hover:bg-gray-600 text-white'
+                      }`}
+                    >
+                      {platformSettings.debugMode ? '🐛 ON' : '🐛 OFF'}
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Auto Backup</span>
+                    <button 
+                      onClick={() => {
+                        const newBackup = !platformSettings.autoBackup;
+                        setPlatformSettings({...platformSettings, autoBackup: newBackup});
+                        toast.success(`💾 Auto backup ${newBackup ? 'ENABLED' : 'DISABLED'}!`);
+                      }}
+                      className={`px-3 py-1 rounded text-sm transition-all ${
+                        platformSettings.autoBackup 
+                          ? 'bg-green-500 hover:bg-green-600 text-white' 
+                          : 'bg-gray-500 hover:bg-gray-600 text-white'
+                      }`}
+                    >
+                      {platformSettings.autoBackup ? '💾 ON' : '💾 OFF'}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>CDN Status</span>
+                    <button 
+                      onClick={() => {
+                        const newCdn = !platformSettings.cdnEnabled;
+                        setPlatformSettings({...platformSettings, cdnEnabled: newCdn});
+                        toast.success(`🌐 CDN ${newCdn ? 'ENABLED' : 'DISABLED'}!`);
+                      }}
+                      className={`px-3 py-1 rounded text-sm transition-all ${
+                        platformSettings.cdnEnabled 
+                          ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                          : 'bg-gray-500 hover:bg-gray-600 text-white'
+                      }`}
+                    >
+                      {platformSettings.cdnEnabled ? '🌐 ON' : '🌐 OFF'}
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Cache TTL</span>
+                    <button 
+                      onClick={() => {
+                        const newTtl = prompt('Enter cache TTL (minutes):', '60');
+                        if (newTtl && !isNaN(newTtl) && newTtl > 0) {
+                          setPlatformSettings({...platformSettings, cacheTtl: parseInt(newTtl)});
+                          toast.success(`⏱️ Cache TTL set to ${newTtl} minutes!`);
+                        }
+                      }}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-all"
+                    >
+                      ⏱️ {platformSettings.cacheTtl || 60}m
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
