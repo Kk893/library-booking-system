@@ -53,21 +53,31 @@ router.get('/libraries', auth, superAdminAuth, async (req, res) => {
 // Create new library
 router.post('/libraries', auth, superAdminAuth, async (req, res) => {
   try {
-    const library = new Library(req.body);
+    const library = new Library({
+      ...req.body,
+      createdBy: req.user._id,
+      lastModifiedBy: req.user._id
+    });
     await library.save();
     res.status(201).json(library);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Library creation error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
 // Update library
 router.put('/libraries/:id', auth, superAdminAuth, async (req, res) => {
   try {
-    const library = await Library.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const library = await Library.findByIdAndUpdate(
+      req.params.id, 
+      { ...req.body, lastModifiedBy: req.user._id }, 
+      { new: true }
+    );
     res.json(library);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Library update error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
