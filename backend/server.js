@@ -14,6 +14,7 @@ const booksRoutes = require('./routes/books');
 const offersRoutes = require('./routes/offers');
 const ratingsRoutes = require('./routes/ratings');
 const seatsRoutes = require('./routes/seats');
+const favoritesRoutes = require('./routes/favorites');
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use('/api/books', booksRoutes);
 app.use('/api/offers', offersRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/seats', seatsRoutes);
+app.use('/api/favorites', favoritesRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/library-booking')
