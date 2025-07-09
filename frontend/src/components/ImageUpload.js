@@ -25,7 +25,7 @@ const ImageUpload = ({ onImageUpload, currentImage, type = 'general', placeholde
     setUploading(true);
 
     try {
-      // Create preview
+      // Create preview immediately
       const reader = new FileReader();
       reader.onload = (e) => setPreview(e.target.result);
       reader.readAsDataURL(file);
@@ -34,20 +34,28 @@ const ImageUpload = ({ onImageUpload, currentImage, type = 'general', placeholde
       const formData = new FormData();
       formData.append('image', file);
 
+      console.log('Uploading to:', `/api/images/upload/${type}`);
+      
       const response = await axios.post(`/api/images/upload/${type}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        timeout: 30000 // 30 second timeout
       });
 
-      const imageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${response.data.imageUrl}`;
+      console.log('Upload response:', response.data);
+      
+      const fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${response.data.imageUrl}`;
       
       if (onImageUpload) {
-        onImageUpload(imageUrl, response.data.imageUrl);
+        onImageUpload(fullImageUrl, response.data.imageUrl);
       }
 
       toast.success('📸 Image uploaded successfully!');
     } catch (error) {
       console.error('Image upload error:', error);
-      toast.error(error.response?.data?.message || 'Failed to upload image');
+      console.error('Error response:', error.response?.data);
+      toast.error(error.response?.data?.message || error.message || 'Failed to upload image');
       setPreview(currentImage); // Revert preview on error
     } finally {
       setUploading(false);

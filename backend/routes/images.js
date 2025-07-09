@@ -44,39 +44,45 @@ const upload = multer({
 });
 
 // Upload image endpoint
-router.post('/upload/:type', auth, (req, res) => {
-  upload.single('image')(req, res, async (err) => {
-    try {
-      if (err) {
-        console.error('Image upload error:', err);
-        return res.status(400).json({ message: err.message });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ message: 'No image file provided' });
-      }
-
-      const imageUrl = `/uploads/${req.params.type}/${req.file.filename}`;
-      
-      res.json({
-        message: 'Image uploaded successfully',
-        imageUrl,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size
-      });
-    } catch (error) {
-      console.error('Image upload processing error:', error);
-      // Delete uploaded file if processing fails
-      if (req.file) {
-        const filePath = path.join(__dirname, `../uploads/${req.params.type}`, req.file.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+router.post('/upload/:type', auth, async (req, res) => {
+  try {
+    // Ensure upload directory exists
+    const uploadDir = path.join(__dirname, `../uploads/${req.params.type}`);
+    createUploadDir(uploadDir);
+    
+    upload.single('image')(req, res, async (err) => {
+      try {
+        if (err) {
+          console.error('Multer error:', err);
+          return res.status(400).json({ message: err.message });
         }
+
+        if (!req.file) {
+          return res.status(400).json({ message: 'No image file provided' });
+        }
+
+        const imageUrl = `/uploads/${req.params.type}/${req.file.filename}`;
+        
+        res.json({
+          message: 'Image uploaded successfully',
+          imageUrl,
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size
+        });
+      } catch (error) {
+        console.error('Image processing error:', error);
+        // Cleanup on error
+        if (req.file && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ message: 'Server error', error: error.message });
       }
-      res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Upload route error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 });
 
 // Delete image endpoint
