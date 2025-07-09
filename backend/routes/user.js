@@ -203,36 +203,44 @@ router.get('/dashboard', auth, async (req, res) => {
 });
 
 // Upload profile image
-router.post('/profile/image', auth, upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No image file provided' });
-    }
-
-    const imageUrl = `/uploads/profiles/${req.file.filename}`;
-    
-    // Update user profile with new image URL
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { profileImage: imageUrl },
-      { new: true }
-    ).select('-password');
-
-    res.json({ 
-      message: 'Profile image updated successfully',
-      imageUrl,
-      user 
-    });
-  } catch (error) {
-    // Delete uploaded file if database update fails
-    if (req.file) {
-      const filePath = path.join(__dirname, '../uploads/profiles', req.file.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+router.post('/profile/image', auth, (req, res) => {
+  upload.single('image')(req, res, async (err) => {
+    try {
+      if (err) {
+        console.error('Multer error:', err);
+        return res.status(400).json({ message: err.message });
       }
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image file provided' });
+      }
+
+      const imageUrl = `/uploads/profiles/${req.file.filename}`;
+      
+      // Update user profile with new image URL
+      const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { profileImage: imageUrl },
+        { new: true }
+      ).select('-password');
+
+      res.json({ 
+        message: 'Profile image updated successfully',
+        imageUrl,
+        user 
+      });
+    } catch (error) {
+      console.error('Profile image upload error:', error);
+      // Delete uploaded file if database update fails
+      if (req.file) {
+        const filePath = path.join(__dirname, '../uploads/profiles', req.file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+  });
 });
 
 module.exports = router;
