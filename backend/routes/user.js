@@ -1,10 +1,44 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
 const Library = require('../models/Library');
 const Book = require('../models/Book');
 const { auth, userAuth } = require('../middleware/auth');
 const { canManageUser, preventPrivilegeEscalation, logPrivilegeAction } = require('../middleware/rbac');
+
+// Multer configuration for profile images
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../uploads/profiles');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 const router = express.Router();
 
@@ -164,6 +198,39 @@ router.get('/dashboard', auth, async (req, res) => {
       recentBookings
     });
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Upload profile image
+router.post('/profile/image', auth, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    const imageUrl = `/uploads/profiles/${req.file.filename}`;
+    
+    // Update user profile with new image URL
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { profileImage: imageUrl },
+      { new: true }
+    ).select('-password');
+
+    res.json({ 
+      message: 'Profile image updated successfully',
+      imageUrl,
+      user 
+    });
+  } catch (error) {
+    // Delete uploaded file if database update fails
+    if (req.file) {
+      const filePath = path.join(__dirname, '../uploads/profiles', req.file.filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
