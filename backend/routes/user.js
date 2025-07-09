@@ -218,17 +218,31 @@ router.post('/profile/image', auth, (req, res) => {
       const imageUrl = `/uploads/profiles/${req.file.filename}`;
       
       // Update user profile with new image URL
-      const user = await User.findByIdAndUpdate(
+      const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
-        { profileImage: imageUrl },
-        { new: true }
+        { 
+          profileImage: imageUrl,
+          lastModifiedBy: req.user._id
+        },
+        { new: true, runValidators: true }
       ).select('-password');
 
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      console.log('Profile image saved to database:', {
+        userId: req.user._id,
+        imageUrl,
+        updatedUser: updatedUser.profileImage
+      });
+
       res.json({ 
+        success: true,
         message: 'Profile image updated successfully',
         imageUrl,
         profileImage: imageUrl,
-        user: { ...user.toObject(), profileImage: imageUrl }
+        user: updatedUser
       });
     } catch (error) {
       console.error('Profile image upload error:', error);

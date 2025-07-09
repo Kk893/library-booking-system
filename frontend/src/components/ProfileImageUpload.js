@@ -48,17 +48,30 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
       <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
         {displayImage ? (
           <img 
-            src={displayImage.startsWith('http') ? displayImage : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${displayImage}`} 
+            src={
+              displayImage.startsWith('data:') ? displayImage : // Base64 preview
+              displayImage.startsWith('http') ? displayImage : // Full URL
+              `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${displayImage}` // Relative path
+            } 
             alt="Profile" 
             className="w-full h-full object-cover"
+            onError={(e) => {
+              console.error('Image load error:', e.target.src);
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
           />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">
-              {getInitials(userName)}
-            </span>
-          </div>
-        )}
+        ) : null}
+        
+        {/* Fallback initials - always present but hidden when image loads */}
+        <div 
+          className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center"
+          style={{ display: displayImage ? 'none' : 'flex' }}
+        >
+          <span className="text-white text-2xl font-bold">
+            {getInitials(userName)}
+          </span>
+        </div>
         
         {uploading && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">

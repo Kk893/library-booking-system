@@ -116,12 +116,22 @@ const Profile = () => {
           }
         });
         
+        console.log('Upload response:', response.data);
+        
         const serverImageUrl = `${API_BASE_URL}${response.data.imageUrl}`;
-        const updatedUser = { ...response.data.user, profileImage: serverImageUrl };
+        const updatedUser = { 
+          ...response.data.user, 
+          profileImage: response.data.imageUrl // Use relative path from database
+        };
         
         // Update both local state and global user state
-        setProfileData(prev => ({ ...prev, profileImage: serverImageUrl }));
+        setProfileData(prev => ({ 
+          ...prev, 
+          profileImage: response.data.imageUrl // Store relative path
+        }));
         updateUser(updatedUser);
+        
+        console.log('Updated user state:', updatedUser);
         
         toast.success('📸 Profile picture updated!');
       } catch (error) {
