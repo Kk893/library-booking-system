@@ -105,7 +105,7 @@ const Profile = () => {
     
     if (file) {
       const formData = new FormData();
-      formData.append('profileImage', file);
+      formData.append('image', file);
       
       try {
         const token = localStorage.getItem('token');
