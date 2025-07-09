@@ -103,4 +103,29 @@ router.get('/nearby', async (req, res) => {
   }
 });
 
+// Update library images
+router.put('/:id/images', async (req, res) => {
+  try {
+    const { images } = req.body;
+    
+    const library = await Library.findByIdAndUpdate(
+      req.params.id,
+      { images },
+      { new: true }
+    );
+    
+    if (!library) {
+      return res.status(404).json({ message: 'Library not found' });
+    }
+    
+    res.json({ 
+      success: true,
+      message: 'Library images updated successfully',
+      library 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;

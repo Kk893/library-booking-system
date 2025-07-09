@@ -63,13 +63,26 @@ const BookCard = ({ book, onReserve }) => {
         }`}>
           {book.coverImage ? (
             <img 
-              src={book.coverImage} 
+              src={
+                book.coverImage.startsWith('http') ? book.coverImage :
+                `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${book.coverImage}`
+              }
               alt={book.title}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
             />
-          ) : (
+          ) : null}
+          
+          {/* Fallback icon */}
+          <div 
+            className="w-full h-full flex items-center justify-center"
+            style={{ display: book.coverImage ? 'none' : 'flex' }}
+          >
             <span className="text-4xl text-white">📚</span>
-          )}
+          </div>
         </div>
         
         {/* Favorite Button */}

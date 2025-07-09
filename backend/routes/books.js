@@ -51,4 +51,29 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Update book cover image
+router.put('/:id/image', async (req, res) => {
+  try {
+    const { coverImage } = req.body;
+    
+    const book = await Book.findByIdAndUpdate(
+      req.params.id,
+      { coverImage },
+      { new: true }
+    );
+    
+    if (!book) {
+      return res.status(404).json({ message: 'Book not found' });
+    }
+    
+    res.json({ 
+      success: true,
+      message: 'Book cover updated successfully',
+      book 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;

@@ -25,6 +25,10 @@ const bookSchema = new mongoose.Schema({
   lastModifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  },
+  lastModifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
 }, { timestamps: true });
 
