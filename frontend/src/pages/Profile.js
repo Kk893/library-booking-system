@@ -116,11 +116,11 @@ const Profile = () => {
           }
         });
         
-        const serverImageUrl = `${API_BASE_URL}${response.data.profileImage}`;
-        const updatedUser = { ...user, profileImage: serverImageUrl };
+        const serverImageUrl = `${API_BASE_URL}${response.data.imageUrl}`;
+        const updatedUser = { ...response.data.user, profileImage: serverImageUrl };
         
         // Update both local state and global user state
-        setProfileData({ ...profileData, profileImage: serverImageUrl });
+        setProfileData(prev => ({ ...prev, profileImage: serverImageUrl }));
         updateUser(updatedUser);
         
         toast.success('📸 Profile picture updated!');

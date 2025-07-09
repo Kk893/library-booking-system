@@ -227,7 +227,8 @@ router.post('/profile/image', auth, (req, res) => {
       res.json({ 
         message: 'Profile image updated successfully',
         imageUrl,
-        user 
+        profileImage: imageUrl,
+        user: { ...user.toObject(), profileImage: imageUrl }
       });
     } catch (error) {
       console.error('Profile image upload error:', error);

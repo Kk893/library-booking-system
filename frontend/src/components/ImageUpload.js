@@ -1,90 +1,104 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import axios from '../utils/axios';
 import toast from 'react-hot-toast';
 
-const ImageUpload = ({ onImageSelect, currentImage, placeholder = "Upload Image" }) => {
+const ImageUpload = ({ onImageUpload, currentImage, type = 'general', placeholder = 'Upload Image' }) => {
   const { isDark } = useTheme();
-  const [preview, setPreview] = useState(currentImage || null);
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState(currentImage);
 
-  const handleImageSelect = (event) => {
+  const handleImageSelect = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
-        return;
-      }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Image size should be less than 5MB');
-        return;
-      }
+    if (!file) return;
 
-      setUploading(true);
-      
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size should be less than 10MB');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
       // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target.result;
-        setPreview(imageUrl);
-        onImageSelect(imageUrl, file);
-        setUploading(false);
-        toast.success('📸 Image uploaded successfully!');
-      };
+      reader.onload = (e) => setPreview(e.target.result);
       reader.readAsDataURL(file);
+
+      // Upload to server
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await axios.post(`/api/images/upload/${type}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      const imageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${response.data.imageUrl}`;
+      
+      if (onImageUpload) {
+        onImageUpload(imageUrl, response.data.imageUrl);
+      }
+
+      toast.success('📸 Image uploaded successfully!');
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload image');
+      setPreview(currentImage); // Revert preview on error
+    } finally {
+      setUploading(false);
     }
   };
 
-  const removeImage = () => {
-    setPreview(null);
-    onImageSelect(null, null);
-    toast.success('🗑️ Image removed');
-  };
-
   return (
-    <div className="space-y-4">
-      <div className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-all ${
-        isDark ? 'border-gray-600 bg-gray-700/50' : 'border-gray-300 bg-gray-50'
+    <div className="relative">
+      <div className={`border-2 border-dashed rounded-lg p-4 text-center transition-all hover:border-blue-500 ${
+        isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
       }`}>
         {preview ? (
           <div className="relative">
             <img 
               src={preview} 
               alt="Preview" 
-              className="w-full h-48 object-cover rounded-lg"
+              className="w-full h-48 object-cover rounded-lg mb-2"
             />
-            <button
-              onClick={removeImage}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors"
-            >
-              ✕
-            </button>
+            <div className="absolute top-2 right-2">
+              <label className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full cursor-pointer transition-all">
+                <span className="text-sm">📷</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                  disabled={uploading}
+                />
+              </label>
+            </div>
           </div>
         ) : (
-          <div className="py-8">
-            <div className="text-4xl mb-4">📸</div>
-            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              {placeholder}
-            </p>
-            <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              PNG, JPG, GIF up to 5MB
-            </p>
-          </div>
+          <label className="cursor-pointer block">
+            <div className={`py-8 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              <div className="text-4xl mb-2">📷</div>
+              <p className="text-sm font-medium">{placeholder}</p>
+              <p className="text-xs mt-1">Click to select image (Max 10MB)</p>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+              disabled={uploading}
+            />
+          </label>
         )}
-        
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageSelect}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          disabled={uploading}
-        />
         
         {uploading && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-            <div className="text-white">
+            <div className="text-white text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
               <p className="text-sm">Uploading...</p>
             </div>
