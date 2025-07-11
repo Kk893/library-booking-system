@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import axios from '../utils/axios';
 import toast from 'react-hot-toast';
 import ImageUpload from '../components/ImageUpload';
+import MultipleImageUpload from '../components/MultipleImageUpload';
 import { getImageUrl, handleImageError } from '../utils/imageUtils';
 import {
   Chart as ChartJS,
@@ -27,6 +28,320 @@ ChartJS.register(
   Title
 );
 
+const LibraryEditForm = ({ library, onUpdate, onCancel, isDark }) => {
+  const [formData, setFormData] = useState({
+    name: library.name || '',
+    address: library.address || '',
+    city: library.city || '',
+    area: library.area || '',
+    pincode: library.pincode || '',
+    phone: library.phone || '',
+    email: library.email || '',
+    openingHours: {
+      open: library.openingHours?.open || '09:00',
+      close: library.openingHours?.close || '21:00'
+    },
+    facilities: library.facilities || [],
+    images: library.images || [],
+    seatLayout: {
+      regular: {
+        count: library.seatLayout?.regular?.count || 0,
+        price: library.seatLayout?.regular?.price || 0
+      },
+      ac: {
+        count: library.seatLayout?.ac?.count || 0,
+        price: library.seatLayout?.ac?.price || 0
+      },
+      premium: {
+        count: library.seatLayout?.premium?.count || 0,
+        price: library.seatLayout?.premium?.price || 0
+      }
+    }
+  });
+  const [loading, setLoading] = useState(false);
+  const [newFacility, setNewFacility] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await onUpdate(formData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addFacility = () => {
+    if (newFacility.trim() && !formData.facilities.includes(newFacility.trim())) {
+      setFormData({
+        ...formData,
+        facilities: [...formData.facilities, newFacility.trim()]
+      });
+      setNewFacility('');
+    }
+  };
+
+  const removeFacility = (facility) => {
+    setFormData({
+      ...formData,
+      facilities: formData.facilities.filter(f => f !== facility)
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Basic Info */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <input
+          type="text"
+          placeholder="Library Name"
+          value={formData.name}
+          onChange={(e) => setFormData({...formData, name: e.target.value})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          required
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={(e) => setFormData({...formData, email: e.target.value})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          required
+        />
+      </div>
+
+      <textarea
+        placeholder="Address"
+        value={formData.address}
+        onChange={(e) => setFormData({...formData, address: e.target.value})}
+        className={`w-full px-4 py-2 rounded-lg border ${
+          isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+        }`}
+        rows="2"
+        required
+      />
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <input
+          type="text"
+          placeholder="City"
+          value={formData.city}
+          onChange={(e) => setFormData({...formData, city: e.target.value})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Area"
+          value={formData.area}
+          onChange={(e) => setFormData({...formData, area: e.target.value})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Pincode"
+          value={formData.pincode}
+          onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          pattern="[0-9]{6}"
+          required
+        />
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <input
+          type="tel"
+          placeholder="Phone"
+          value={formData.phone}
+          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          required
+        />
+        <input
+          type="time"
+          placeholder="Opening Time"
+          value={formData.openingHours.open}
+          onChange={(e) => setFormData({...formData, openingHours: {...formData.openingHours, open: e.target.value}})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          required
+        />
+        <input
+          type="time"
+          placeholder="Closing Time"
+          value={formData.openingHours.close}
+          onChange={(e) => setFormData({...formData, openingHours: {...formData.openingHours, close: e.target.value}})}
+          className={`w-full px-4 py-2 rounded-lg border ${
+            isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+          }`}
+          required
+        />
+      </div>
+
+      {/* Facilities */}
+      <div>
+        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          Facilities
+        </label>
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            placeholder="Add facility (e.g., WiFi, AC, Parking)"
+            value={newFacility}
+            onChange={(e) => setNewFacility(e.target.value)}
+            className={`flex-1 px-4 py-2 rounded-lg border ${
+              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+            }`}
+            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFacility())}
+          />
+          <button
+            type="button"
+            onClick={addFacility}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            Add
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.facilities.map((facility, index) => (
+            <span key={index} className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${
+              isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'
+            }`}>
+              {facility}
+              <button
+                type="button"
+                onClick={() => removeFacility(facility)}
+                className="text-red-500 hover:text-red-600"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Seat Layout */}
+      <div>
+        <label className={`block text-sm font-medium mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          Seat Configuration
+        </label>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+            <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Regular Seats</h4>
+            <input
+              type="number"
+              placeholder="Count"
+              value={formData.seatLayout.regular.count}
+              onChange={(e) => setFormData({...formData, seatLayout: {...formData.seatLayout, regular: {...formData.seatLayout.regular, count: parseInt(e.target.value) || 0}}})}
+              className={`w-full px-3 py-2 rounded border mb-2 ${
+                isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'
+              }`}
+            />
+            <input
+              type="number"
+              placeholder="Price per hour"
+              value={formData.seatLayout.regular.price}
+              onChange={(e) => setFormData({...formData, seatLayout: {...formData.seatLayout, regular: {...formData.seatLayout.regular, price: parseInt(e.target.value) || 0}}})}
+              className={`w-full px-3 py-2 rounded border ${
+                isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'
+              }`}
+            />
+          </div>
+          <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+            <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>AC Seats</h4>
+            <input
+              type="number"
+              placeholder="Count"
+              value={formData.seatLayout.ac.count}
+              onChange={(e) => setFormData({...formData, seatLayout: {...formData.seatLayout, ac: {...formData.seatLayout.ac, count: parseInt(e.target.value) || 0}}})}
+              className={`w-full px-3 py-2 rounded border mb-2 ${
+                isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'
+              }`}
+            />
+            <input
+              type="number"
+              placeholder="Price per hour"
+              value={formData.seatLayout.ac.price}
+              onChange={(e) => setFormData({...formData, seatLayout: {...formData.seatLayout, ac: {...formData.seatLayout.ac, price: parseInt(e.target.value) || 0}}})}
+              className={`w-full px-3 py-2 rounded border ${
+                isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'
+              }`}
+            />
+          </div>
+          <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+            <h4 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Premium Seats</h4>
+            <input
+              type="number"
+              placeholder="Count"
+              value={formData.seatLayout.premium.count}
+              onChange={(e) => setFormData({...formData, seatLayout: {...formData.seatLayout, premium: {...formData.seatLayout.premium, count: parseInt(e.target.value) || 0}}})}
+              className={`w-full px-3 py-2 rounded border mb-2 ${
+                isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'
+              }`}
+            />
+            <input
+              type="number"
+              placeholder="Price per hour"
+              value={formData.seatLayout.premium.price}
+              onChange={(e) => setFormData({...formData, seatLayout: {...formData.seatLayout, premium: {...formData.seatLayout.premium, price: parseInt(e.target.value) || 0}}})}
+              className={`w-full px-3 py-2 rounded border ${
+                isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'
+              }`}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Library Images */}
+      <div>
+        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          Library Images
+        </label>
+        <MultipleImageUpload
+          onImagesUpload={(images) => setFormData({...formData, images})}
+          currentImages={formData.images}
+          type="libraries"
+          placeholder="Upload library images"
+        />
+      </div>
+
+      {/* Form Actions */}
+      <div className="flex space-x-4 pt-4">
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+        >
+          {loading ? '⏳ Updating...' : '💾 Update Library'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+};
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { isDark } = useTheme();
@@ -41,8 +356,10 @@ const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [libraryUsers, setLibraryUsers] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [library, setLibrary] = useState(null);
   const [showAddBook, setShowAddBook] = useState(false);
   const [showAddOffer, setShowAddOffer] = useState(false);
+  const [showEditLibrary, setShowEditLibrary] = useState(false);
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -72,10 +389,11 @@ const AdminDashboard = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       // Fetch real data from APIs
-      const [booksRes, usersRes, offersRes] = await Promise.all([
+      const [booksRes, usersRes, offersRes, libraryRes] = await Promise.all([
         axios.get('/api/admin/books', { headers }).catch(() => ({ data: [] })),
         axios.get('/api/admin/library-users', { headers }).catch(() => ({ data: [] })),
-        axios.get('/api/admin/admin-offers', { headers }).catch(() => ({ data: [] }))
+        axios.get('/api/admin/admin-offers', { headers }).catch(() => ({ data: [] })),
+        axios.get('/api/admin/my-library', { headers }).catch(() => ({ data: null }))
       ]);
       
       console.log('Books data:', booksRes.data);
@@ -84,8 +402,8 @@ const AdminDashboard = () => {
       
       setBooks(booksRes.data || []);
       setLibraryUsers(usersRes.data || []);
-      // Show all offers for admin (will filter later)
       setOffers(offersRes.data || []);
+      setLibrary(libraryRes.data);
       
       // Generate realistic stats
       const totalBooks = booksRes.data?.length || 0;
@@ -265,6 +583,18 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateLibrary = async (libraryData) => {
+    try {
+      const response = await axios.put(`/api/admin/my-library`, libraryData);
+      setLibrary(response.data);
+      toast.success('🏢 Library updated successfully!');
+      setShowEditLibrary(false);
+    } catch (error) {
+      console.error('Update library error:', error.response?.data || error.message);
+      toast.error('Failed to update library');
+    }
+  };
+
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -298,6 +628,7 @@ const AdminDashboard = () => {
           <div className="flex space-x-8">
             {[
               { id: 'overview', label: '📊 Overview' },
+              { id: 'library', label: '🏢 My Library' },
               { id: 'books', label: '📚 Books' },
               { id: 'bookings', label: '📅 Bookings' },
               { id: 'users', label: '👥 Users' },
@@ -401,6 +732,140 @@ const AdminDashboard = () => {
               </div>
             </div>
           </>
+        )}
+
+        {/* Library Management Tab */}
+        {activeTab === 'library' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                🏢 My Library Management
+              </h2>
+              <button 
+                onClick={() => setShowEditLibrary(true)}
+                className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+              >
+                ✏️ Edit Library
+              </button>
+            </div>
+            
+            {library ? (
+              <div className="space-y-6">
+                {/* Library Info */}
+                <div className={`p-6 rounded-xl ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                  <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    {library.name}
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <strong>Address:</strong> {library.address}
+                      </p>
+                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <strong>City:</strong> {library.city}, {library.area}
+                      </p>
+                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <strong>Pincode:</strong> {library.pincode}
+                      </p>
+                    </div>
+                    <div>
+                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <strong>Phone:</strong> {library.phone}
+                      </p>
+                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <strong>Email:</strong> {library.email}
+                      </p>
+                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <strong>Hours:</strong> {library.openingHours?.open} - {library.openingHours?.close}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Facilities */}
+                  {library.facilities && library.facilities.length > 0 && (
+                    <div className="mt-4">
+                      <p className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Facilities:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {library.facilities.map((facility, index) => (
+                          <span key={index} className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {facility}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Library Images */}
+                <div className={`p-6 rounded-xl ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                  <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    🖼️ Library Images
+                  </h3>
+                  {library.images && library.images.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {library.images.map((image, index) => (
+                        <img
+                          key={index}
+                          src={getImageUrl(image)}
+                          alt={`Library ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                          onError={handleImageError}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      No images uploaded yet. Click "Edit Library" to add images.
+                    </p>
+                  )}
+                </div>
+                
+                {/* Seat Layout */}
+                {library.seatLayout && (
+                  <div className={`p-6 rounded-xl ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                    <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      🪑 Seat Configuration
+                    </h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {library.seatLayout.regular && (
+                        <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-600' : 'bg-white'}`}>
+                          <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Regular Seats</h4>
+                          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Count: {library.seatLayout.regular.count}</p>
+                          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Price: ₹{library.seatLayout.regular.price}</p>
+                        </div>
+                      )}
+                      {library.seatLayout.ac && (
+                        <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-600' : 'bg-white'}`}>
+                          <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>AC Seats</h4>
+                          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Count: {library.seatLayout.ac.count}</p>
+                          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Price: ₹{library.seatLayout.ac.price}</p>
+                        </div>
+                      )}
+                      {library.seatLayout.premium && (
+                        <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-600' : 'bg-white'}`}>
+                          <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Premium Seats</h4>
+                          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Count: {library.seatLayout.premium.count}</p>
+                          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Price: ₹{library.seatLayout.premium.price}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🏢</div>
+                <p className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  No Library Assigned
+                </p>
+                <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Contact super admin to assign a library to your account
+                </p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Books Management Tab */}
@@ -1060,6 +1525,23 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Library Modal */}
+        {showEditLibrary && library && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in overflow-y-auto">
+            <div className={`rounded-2xl p-6 w-full max-w-2xl mx-4 my-8 max-h-[90vh] overflow-y-auto transform transition-all duration-500 animate-scale-in ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+              <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                ✏️ Edit Library: {library.name}
+              </h3>
+              <LibraryEditForm 
+                library={library}
+                onUpdate={handleUpdateLibrary}
+                onCancel={() => setShowEditLibrary(false)}
+                isDark={isDark}
+              />
             </div>
           </div>
         )}

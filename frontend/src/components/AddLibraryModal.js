@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import ImageUpload from './ImageUpload';
+import MultipleImageUpload from './MultipleImageUpload';
 
 const AddLibraryModal = ({ isOpen, onClose, onSuccess }) => {
   const { isDark } = useTheme();
@@ -272,33 +272,12 @@ const AddLibraryModal = ({ isOpen, onClose, onSuccess }) => {
           {/* Library Images */}
           <div>
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Library Images</label>
-            <ImageUpload 
-              onImageSelect={(imageUrl, file) => {
-                if (imageUrl) {
-                  setFormData({...formData, images: [...formData.images, imageUrl]});
-                }
-              }}
+            <MultipleImageUpload
+              onImagesUpload={(images) => setFormData({...formData, images})}
+              currentImages={formData.images}
+              type="libraries"
               placeholder="Upload library images"
             />
-            {formData.images.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                {formData.images.map((image, index) => (
-                  <div key={index} className="relative">
-                    <img src={image} alt={`Library ${index + 1}`} className="w-full h-20 object-cover rounded" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newImages = formData.images.filter((_, i) => i !== index);
-                        setFormData({...formData, images: newImages});
-                      }}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
           
           <div className="flex space-x-4 pt-4">

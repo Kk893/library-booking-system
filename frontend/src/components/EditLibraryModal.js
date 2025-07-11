@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import MultipleImageUpload from './MultipleImageUpload';
 
 const EditLibraryModal = ({ isOpen, onClose, onSuccess, library }) => {
   const { isDark } = useTheme();
@@ -15,6 +16,7 @@ const EditLibraryModal = ({ isOpen, onClose, onSuccess, library }) => {
     email: '',
     openingHours: { open: '09:00', close: '21:00' },
     facilities: [],
+    images: [],
     seatLayout: {
       regular: { count: 20, price: 50 },
       ac: { count: 15, price: 80 },
@@ -34,6 +36,7 @@ const EditLibraryModal = ({ isOpen, onClose, onSuccess, library }) => {
         email: library.email || '',
         openingHours: library.openingHours || { open: '09:00', close: '21:00' },
         facilities: library.facilities || [],
+        images: library.images || [],
         seatLayout: library.seatLayout || {
           regular: { count: 20, price: 50 },
           ac: { count: 15, price: 80 },
@@ -266,6 +269,19 @@ const EditLibraryModal = ({ isOpen, onClose, onSuccess, library }) => {
                 </div>
               </div>
             </div>
+          </div>
+          
+          {/* Library Images */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Library Images
+            </label>
+            <MultipleImageUpload
+              onImagesUpload={(images) => setFormData({...formData, images})}
+              currentImages={formData.images}
+              type="libraries"
+              placeholder="Upload library images"
+            />
           </div>
           
           <div className="flex space-x-4 pt-4">

@@ -352,6 +352,36 @@ router.get('/library-users', auth, adminAuth, async (req, res) => {
   }
 });
 
+// Get admin's library
+router.get('/my-library', auth, adminAuth, async (req, res) => {
+  try {
+    const library = await Library.findOne({ adminId: req.user._id });
+    if (!library) {
+      return res.status(404).json({ message: 'No library assigned to this admin' });
+    }
+    res.json(library);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update admin's library
+router.put('/my-library', auth, adminAuth, async (req, res) => {
+  try {
+    const library = await Library.findOneAndUpdate(
+      { adminId: req.user._id },
+      { ...req.body, lastModifiedBy: req.user._id },
+      { new: true }
+    );
+    if (!library) {
+      return res.status(404).json({ message: 'No library assigned to this admin' });
+    }
+    res.json(library);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Admin Offers - Only admin's own offers
 router.get('/admin-offers', auth, adminAuth, async (req, res) => {
   try {
