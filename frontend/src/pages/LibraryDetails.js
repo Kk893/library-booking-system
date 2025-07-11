@@ -27,6 +27,9 @@ const LibraryDetails = () => {
   const [showOffers, setShowOffers] = useState(false);
   const [appliedOffer, setAppliedOffer] = useState(null);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     fetchLibraryDetails();
@@ -268,27 +271,68 @@ const LibraryDetails = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className={`lg:col-span-2 backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
-              <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>About This Library</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Address</h4>
-                  <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{library.address}</p>
+          <div className="space-y-6">
+            {/* Library Images Gallery */}
+            {library.images && library.images.length > 0 && (
+              <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>📸 Library Gallery</h3>
+                  <button
+                    onClick={() => {
+                      setGalleryImages(library.images);
+                      setCurrentImageIndex(0);
+                      setShowGallery(true);
+                    }}
+                    className="text-blue-500 hover:text-blue-600 font-semibold text-sm"
+                  >
+                    View All ({library.images.length})
+                  </button>
                 </div>
-                <div>
-                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Contact</h4>
-                  <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>📞 {library.phone}</p>
-                  <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>📧 {library.email}</p>
-                </div>
-                <div>
-                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Opening Hours</h4>
-                  <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    🕒 {library.openingHours?.open} - {library.openingHours?.close}
-                  </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {library.images.slice(0, 4).map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={`http://localhost:5000${image}`}
+                        alt={`${library.name} ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg cursor-pointer transition-transform group-hover:scale-105"
+                        onClick={() => {
+                          setGalleryImages(library.images);
+                          setCurrentImageIndex(index);
+                          setShowGallery(true);
+                        }}
+                      />
+                      {index === 3 && library.images.length > 4 && (
+                        <div className="absolute inset-0 bg-black bg-opacity-60 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">+{library.images.length - 4}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+            
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className={`lg:col-span-2 backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+                <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>About This Library</h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Address</h4>
+                    <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{library.address}</p>
+                  </div>
+                  <div>
+                    <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Contact</h4>
+                    <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>📞 {library.phone}</p>
+                    <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>📧 {library.email}</p>
+                  </div>
+                  <div>
+                    <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Opening Hours</h4>
+                    <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      🕒 {library.openingHours?.open} - {library.openingHours?.close}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
             <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
               <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Quick Stats</h3>
@@ -577,6 +621,50 @@ const LibraryDetails = () => {
         onApplyOffer={handleApplyOffer}
         totalAmount={totalAmount}
       />
+
+      {/* Image Gallery Modal */}
+      {showGallery && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <button
+              onClick={() => setShowGallery(false)}
+              className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
+            >
+              ✕
+            </button>
+            
+            {galleryImages.length > 1 && (
+              <button
+                onClick={() => setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)}
+                className="absolute left-4 text-white text-3xl hover:text-gray-300 z-10"
+              >
+                ‹
+              </button>
+            )}
+            
+            <img
+              src={`http://localhost:5000${galleryImages[currentImageIndex]}`}
+              alt={`Gallery ${currentImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+            />
+            
+            {galleryImages.length > 1 && (
+              <button
+                onClick={() => setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length)}
+                className="absolute right-4 text-white text-3xl hover:text-gray-300 z-10"
+              >
+                ›
+              </button>
+            )}
+            
+            {galleryImages.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded">
+                {currentImageIndex + 1} / {galleryImages.length}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

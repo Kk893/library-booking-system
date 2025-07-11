@@ -10,8 +10,10 @@ import { getImageUrl, handleImageError } from '../utils/imageUtils';
 const Libraries = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-
   const [userLocation, setUserLocation] = useState(null);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { isDark } = useTheme();
 
   // Get user location on page load
@@ -62,6 +64,26 @@ const Libraries = () => {
   const displayLibraries = nearbyLibraries && nearbyLibraries.length > 0 && !searchTerm && !selectedCity 
     ? nearbyLibraries 
     : libraries;
+
+  const openGallery = (images, startIndex = 0) => {
+    setGalleryImages(images);
+    setCurrentImageIndex(startIndex);
+    setShowGallery(true);
+  };
+
+  const closeGallery = () => {
+    setShowGallery(false);
+    setGalleryImages([]);
+    setCurrentImageIndex(0);
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  };
 
   return (
     <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -142,26 +164,50 @@ const Libraries = () => {
                 isDark ? 'bg-gray-800' : 'bg-white'
               }`}
             >
-              <div className={`h-48 flex items-center justify-center relative ${
+              <div className={`h-48 flex items-center justify-center relative overflow-hidden ${
                 index % 4 === 0 ? 'bg-gradient-to-br from-blue-500 to-cyan-500' :
                 index % 4 === 1 ? 'bg-gradient-to-br from-purple-500 to-pink-500' :
                 index % 4 === 2 ? 'bg-gradient-to-br from-green-500 to-teal-500' :
                 'bg-gradient-to-br from-orange-500 to-red-500'
               }`}>
                 {library.images && library.images.length > 0 ? (
-                  <img 
-                    src={getImageUrl(library.images[0])}
-                    alt={library.name}
-                    className="w-full h-full object-cover"
-                    onError={handleImageError}
-                  />
-                ) : null}
-                <div 
-                  className="w-full h-full flex items-center justify-center"
-                  style={{ display: (library.images && library.images.length > 0) ? 'none' : 'flex' }}
-                >
-                  <span className="text-4xl text-white">📚</span>
-                </div>
+                  <>
+                    <img 
+                      src={getImageUrl(library.images[0])}
+                      alt={library.name}
+                      className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-110"
+                      onClick={() => openGallery(library.images, 0)}
+                      onError={handleImageError}
+                    />
+                    {library.images.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => openGallery(library.images, 0)}
+                          className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70"
+                        >
+                          📷 {library.images.length} Photos
+                        </button>
+                        <div className="absolute bottom-2 left-2 flex space-x-1">
+                          {library.images.slice(0, 3).map((_, imgIndex) => (
+                            <div
+                              key={imgIndex}
+                              className={`w-2 h-2 rounded-full ${
+                                imgIndex === 0 ? 'bg-white' : 'bg-white bg-opacity-50'
+                              }`}
+                            />
+                          ))}
+                          {library.images.length > 3 && (
+                            <div className="w-2 h-2 rounded-full bg-white bg-opacity-30" />
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-4xl text-white">📚</span>
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
@@ -226,6 +272,74 @@ const Libraries = () => {
           </div>
         )}
       </div>
+
+      {/* Image Gallery Modal */}
+      {showGallery && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <button
+              onClick={closeGallery}
+              className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
+            >
+              ✕
+            </button>
+            
+            {/* Previous Button */}
+            {galleryImages.length > 1 && (
+              <button
+                onClick={prevImage}
+                className="absolute left-4 text-white text-3xl hover:text-gray-300 z-10"
+              >
+                ‹
+              </button>
+            )}
+            
+            {/* Image */}
+            <img
+              src={getImageUrl(galleryImages[currentImageIndex])}
+              alt={`Gallery ${currentImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+              onError={handleImageError}
+            />
+            
+            {/* Next Button */}
+            {galleryImages.length > 1 && (
+              <button
+                onClick={nextImage}
+                className="absolute right-4 text-white text-3xl hover:text-gray-300 z-10"
+              >
+                ›
+              </button>
+            )}
+            
+            {/* Image Counter */}
+            {galleryImages.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded">
+                {currentImageIndex + 1} / {galleryImages.length}
+              </div>
+            )}
+            
+            {/* Thumbnail Strip */}
+            {galleryImages.length > 1 && (
+              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-xs overflow-x-auto">
+                {galleryImages.map((image, index) => (
+                  <img
+                    key={index}
+                    src={getImageUrl(image)}
+                    alt={`Thumbnail ${index + 1}`}
+                    className={`w-12 h-12 object-cover rounded cursor-pointer transition-all ${
+                      index === currentImageIndex ? 'ring-2 ring-white' : 'opacity-60 hover:opacity-100'
+                    }`}
+                    onClick={() => setCurrentImageIndex(index)}
+                    onError={handleImageError}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

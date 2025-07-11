@@ -360,6 +360,9 @@ const AdminDashboard = () => {
   const [showAddBook, setShowAddBook] = useState(false);
   const [showAddOffer, setShowAddOffer] = useState(false);
   const [showEditLibrary, setShowEditLibrary] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -741,12 +744,14 @@ const AdminDashboard = () => {
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 🏢 My Library Management
               </h2>
-              <button 
-                onClick={() => setShowEditLibrary(true)}
-                className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
-              >
-                ✏️ Edit Library
-              </button>
+              {library && (
+                <button 
+                  onClick={() => setShowEditLibrary(true)}
+                  className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+                >
+                  ✏️ Edit Library
+                </button>
+              )}
             </div>
             
             {library ? (
@@ -756,28 +761,45 @@ const AdminDashboard = () => {
                   <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                     {library.name}
                   </h3>
-                  <div className="grid md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        <strong>Address:</strong> {library.address}
-                      </p>
-                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        <strong>City:</strong> {library.city}, {library.area}
-                      </p>
-                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        <strong>Pincode:</strong> {library.pincode}
-                      </p>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <span className="text-blue-500 mt-1">📍</span>
+                        <div>
+                          <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Address</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{library.address}</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{library.area}, {library.city} - {library.pincode}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <span className="text-green-500 mt-1">📞</span>
+                        <div>
+                          <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Contact</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{library.phone}</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{library.email}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        <strong>Phone:</strong> {library.phone}
-                      </p>
-                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        <strong>Email:</strong> {library.email}
-                      </p>
-                      <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        <strong>Hours:</strong> {library.openingHours?.open} - {library.openingHours?.close}
-                      </p>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <span className="text-purple-500 mt-1">🕰️</span>
+                        <div>
+                          <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Operating Hours</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{library.openingHours?.open} - {library.openingHours?.close}</p>
+                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Monday to Sunday</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <span className={`mt-1 ${library.isActive !== false ? 'text-green-500' : 'text-red-500'}`}>
+                          {library.isActive !== false ? '✅' : '❌'}
+                        </span>
+                        <div>
+                          <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Status</p>
+                          <p className={`text-sm ${library.isActive !== false ? 'text-green-600' : 'text-red-600'}`}>
+                            {library.isActive !== false ? 'Active & Open' : 'Inactive'}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
@@ -804,21 +826,55 @@ const AdminDashboard = () => {
                     🖼️ Library Images
                   </h3>
                   {library.images && library.images.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {library.images.map((image, index) => (
-                        <img
-                          key={index}
-                          src={getImageUrl(image)}
-                          alt={`Library ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg"
-                          onError={handleImageError}
-                        />
-                      ))}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {library.images.length} image{library.images.length > 1 ? 's' : ''} uploaded
+                        </p>
+                        <button
+                          onClick={() => {
+                            setGalleryImages(library.images);
+                            setCurrentImageIndex(0);
+                            setShowGallery(true);
+                          }}
+                          className="text-blue-500 hover:text-blue-600 text-sm font-semibold"
+                        >
+                          📷 View Gallery
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {library.images.map((image, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={getImageUrl(image)}
+                              alt={`Library ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg cursor-pointer transition-transform group-hover:scale-105"
+                              onClick={() => {
+                                setGalleryImages(library.images);
+                                setCurrentImageIndex(index);
+                                setShowGallery(true);
+                              }}
+                              onError={handleImageError}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
+                              <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                🔍
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : (
-                    <p className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      No images uploaded yet. Click "Edit Library" to add images.
-                    </p>
+                    <div className="text-center py-12">
+                      <div className="text-4xl mb-4">🖼️</div>
+                      <p className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        No Images Yet
+                      </p>
+                      <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Click "Edit Library" to add images and showcase your library
+                      </p>
+                    </div>
                   )}
                 </div>
                 
@@ -1542,6 +1598,51 @@ const AdminDashboard = () => {
                 onCancel={() => setShowEditLibrary(false)}
                 isDark={isDark}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Image Gallery Modal */}
+        {showGallery && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <button
+                onClick={() => setShowGallery(false)}
+                className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
+              >
+                ✕
+              </button>
+              
+              {galleryImages.length > 1 && (
+                <button
+                  onClick={() => setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)}
+                  className="absolute left-4 text-white text-3xl hover:text-gray-300 z-10"
+                >
+                  ‹
+                </button>
+              )}
+              
+              <img
+                src={getImageUrl(galleryImages[currentImageIndex])}
+                alt={`Gallery ${currentImageIndex + 1}`}
+                className="max-w-full max-h-full object-contain"
+                onError={handleImageError}
+              />
+              
+              {galleryImages.length > 1 && (
+                <button
+                  onClick={() => setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length)}
+                  className="absolute right-4 text-white text-3xl hover:text-gray-300 z-10"
+                >
+                  ›
+                </button>
+              )}
+              
+              {galleryImages.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded">
+                  {currentImageIndex + 1} / {galleryImages.length}
+                </div>
+              )}
             </div>
           </div>
         )}
