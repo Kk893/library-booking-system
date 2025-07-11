@@ -14,6 +14,7 @@ const Libraries = () => {
   const [showGallery, setShowGallery] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [galleryLibraryName, setGalleryLibraryName] = useState('');
   const { isDark } = useTheme();
 
   // Get user location on page load
@@ -65,8 +66,9 @@ const Libraries = () => {
     ? nearbyLibraries 
     : libraries;
 
-  const openGallery = (images, startIndex = 0) => {
+  const openGallery = (images, libraryName, startIndex = 0) => {
     setGalleryImages(images);
+    setGalleryLibraryName(libraryName);
     setCurrentImageIndex(startIndex);
     setShowGallery(true);
   };
@@ -75,6 +77,7 @@ const Libraries = () => {
     setShowGallery(false);
     setGalleryImages([]);
     setCurrentImageIndex(0);
+    setGalleryLibraryName('');
   };
 
   const nextImage = () => {
@@ -176,19 +179,19 @@ const Libraries = () => {
                       src={getImageUrl(library.images[0])}
                       alt={library.name}
                       className="w-full h-full object-cover cursor-pointer transition-transform hover:scale-110"
-                      onClick={() => openGallery(library.images, 0)}
+                      onClick={() => openGallery(library.images, library.name, 0)}
                       onError={handleImageError}
                     />
                     {library.images.length > 1 && (
                       <>
                         <button
-                          onClick={() => openGallery(library.images, 0)}
-                          className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70"
+                          onClick={() => openGallery(library.images, library.name, 0)}
+                          className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70 transition-all"
                         >
                           📷 {library.images.length} Photos
                         </button>
                         <div className="absolute bottom-2 left-2 flex space-x-1">
-                          {library.images.slice(0, 3).map((_, imgIndex) => (
+                          {library.images.slice(0, 4).map((_, imgIndex) => (
                             <div
                               key={imgIndex}
                               className={`w-2 h-2 rounded-full ${
@@ -196,7 +199,7 @@ const Libraries = () => {
                               }`}
                             />
                           ))}
-                          {library.images.length > 3 && (
+                          {library.images.length > 4 && (
                             <div className="w-2 h-2 rounded-full bg-white bg-opacity-30" />
                           )}
                         </div>
@@ -234,19 +237,33 @@ const Libraries = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="text-yellow-500">⭐</span>
-                    <span className={`text-sm ml-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {library.averageRating > 0 ? library.averageRating : 'No ratings'} ({library.totalRatings || 0})
-                    </span>
+                <div className="space-y-3">
+                  {library.images && library.images.length > 0 && (
+                    <button
+                      onClick={() => openGallery(library.images, library.name, 0)}
+                      className={`w-full text-center py-2 px-3 rounded-lg border transition-all hover:scale-105 ${
+                        isDark 
+                          ? 'border-gray-600 text-blue-400 hover:bg-gray-700' 
+                          : 'border-gray-300 text-blue-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      🖼️ View Gallery ({library.images.length} images)
+                    </button>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="text-yellow-500">⭐</span>
+                      <span className={`text-sm ml-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {library.averageRating > 0 ? library.averageRating : 'No ratings'} ({library.totalRatings || 0})
+                      </span>
+                    </div>
+                    <Link
+                      to={`/libraries/${library._id}`}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+                    >
+                      Book Now
+                    </Link>
                   </div>
-                  <Link
-                    to={`/libraries/${library._id}`}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
-                  >
-                    Book Now
-                  </Link>
                 </div>
               </div>
             </div>
@@ -280,16 +297,23 @@ const Libraries = () => {
             {/* Close Button */}
             <button
               onClick={closeGallery}
-              className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
+              className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center"
             >
               ✕
             </button>
+            
+            {/* Library Name */}
+            <div className="absolute top-4 left-4 text-white z-10">
+              <h3 className="text-lg font-semibold bg-black bg-opacity-50 px-3 py-1 rounded">
+                {galleryLibraryName}
+              </h3>
+            </div>
             
             {/* Previous Button */}
             {galleryImages.length > 1 && (
               <button
                 onClick={prevImage}
-                className="absolute left-4 text-white text-3xl hover:text-gray-300 z-10"
+                className="absolute left-4 text-white text-3xl hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center"
               >
                 ‹
               </button>
@@ -298,7 +322,7 @@ const Libraries = () => {
             {/* Image */}
             <img
               src={getImageUrl(galleryImages[currentImageIndex])}
-              alt={`Gallery ${currentImageIndex + 1}`}
+              alt={`${galleryLibraryName} ${currentImageIndex + 1}`}
               className="max-w-full max-h-full object-contain"
               onError={handleImageError}
             />
@@ -307,7 +331,7 @@ const Libraries = () => {
             {galleryImages.length > 1 && (
               <button
                 onClick={nextImage}
-                className="absolute right-4 text-white text-3xl hover:text-gray-300 z-10"
+                className="absolute right-4 text-white text-3xl hover:text-gray-300 z-10 bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center"
               >
                 ›
               </button>
@@ -322,7 +346,7 @@ const Libraries = () => {
             
             {/* Thumbnail Strip */}
             {galleryImages.length > 1 && (
-              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-xs overflow-x-auto">
+              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-xs overflow-x-auto bg-black bg-opacity-30 p-2 rounded">
                 {galleryImages.map((image, index) => (
                   <img
                     key={index}
