@@ -231,10 +231,12 @@ router.post('/profile/image', auth, (req, res) => {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      console.log('Profile image saved to database:', {
+      // Verify the update worked
+      const verifyUser = await User.findById(req.user._id).select('profileImage name');
+      console.log('✅ Profile image verification:', {
         userId: req.user._id,
-        imageUrl,
-        updatedUser: updatedUser.profileImage
+        savedImage: verifyUser.profileImage,
+        requestedImage: imageUrl
       });
 
       res.json({ 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError, getInitials, validateImageFile, createImagePreview } from '../utils/imageUtils';
 
 const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
   const { isDark } = useTheme();
@@ -12,54 +13,43 @@ const ProfileImageUpload = ({ currentImage, onImageUpdate, userName }) => {
     setDisplayImage(currentImage);
   }, [currentImage]);
 
-  const handleImageSelect = (event) => {
+  const handleImageSelect = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
-        return;
-      }
-      
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('Image size should be less than 2MB');
-        return;
-      }
+    if (!file) return;
 
-      setUploading(true);
-      
+    // Validate file
+    const validation = validateImageFile(file, 2);
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
+
+    setUploading(true);
+    
+    try {
       // Create preview and upload file
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const previewUrl = e.target.result;
-        setDisplayImage(previewUrl);
-        onImageUpdate(previewUrl, file);
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
+      const previewUrl = await createImagePreview(file);
+      setDisplayImage(previewUrl);
+      onImageUpdate(previewUrl, file);
+    } catch (error) {
+      console.error('Preview creation error:', error);
+      toast.error('Failed to create image preview');
+    } finally {
+      setUploading(false);
     }
   };
 
-  const getInitials = (name) => {
-    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
-  };
+
 
   return (
     <div className="relative inline-block">
       <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
         {displayImage ? (
           <img 
-            src={
-              displayImage.startsWith('data:') ? displayImage : // Base64 preview
-              displayImage.startsWith('http') ? displayImage : // Full URL
-              `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${displayImage}` // Relative path
-            } 
+            src={getImageUrl(displayImage)} 
             alt="Profile" 
             className="w-full h-full object-cover"
-            onError={(e) => {
-              console.error('Image load error:', e.target.src);
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
+            onError={handleImageError}
           />
         ) : null}
         

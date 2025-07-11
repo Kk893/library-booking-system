@@ -19,24 +19,38 @@ const imagesRoutes = require('./routes/images');
 
 const app = express();
 
-// Create uploads directory
+// Create uploads directories
 const uploadsDir = path.join(__dirname, 'uploads');
-const profilesDir = path.join(uploadsDir, 'profiles');
+const subdirs = ['profiles', 'books', 'libraries', 'general', 'samples'];
+
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
-if (!fs.existsSync(profilesDir)) {
-  fs.mkdirSync(profilesDir);
-}
+
+subdirs.forEach(subdir => {
+  const dirPath = path.join(uploadsDir, subdir);
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+});
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000'],
-  credentials: true
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Static file serving with proper headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Health check
 app.get('/health', (req, res) => {

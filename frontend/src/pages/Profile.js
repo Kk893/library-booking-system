@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import ProfileImageUpload from '../components/ProfileImageUpload';
-import axios from 'axios';
+import axios from '../utils/axios';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../utils/imageUtils';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -108,17 +109,14 @@ const Profile = () => {
       formData.append('image', file);
       
       try {
-        const token = localStorage.getItem('token');
         const response = await axios.post('/api/user/profile/image', formData, {
           headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
+            'Content-Type': 'multipart/form-data'
           }
         });
         
         console.log('Upload response:', response.data);
         
-        const serverImageUrl = `${API_BASE_URL}${response.data.imageUrl}`;
         const updatedUser = { 
           ...response.data.user, 
           profileImage: response.data.imageUrl // Use relative path from database

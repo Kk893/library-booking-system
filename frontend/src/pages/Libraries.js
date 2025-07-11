@@ -4,6 +4,7 @@ import { useQuery } from 'react-query';
 import axios from '../utils/axios';
 import { MapPinIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../context/ThemeContext';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 
 
 const Libraries = () => {
@@ -141,13 +142,26 @@ const Libraries = () => {
                 isDark ? 'bg-gray-800' : 'bg-white'
               }`}
             >
-              <div className={`h-48 flex items-center justify-center ${
+              <div className={`h-48 flex items-center justify-center relative ${
                 index % 4 === 0 ? 'bg-gradient-to-br from-blue-500 to-cyan-500' :
                 index % 4 === 1 ? 'bg-gradient-to-br from-purple-500 to-pink-500' :
                 index % 4 === 2 ? 'bg-gradient-to-br from-green-500 to-teal-500' :
                 'bg-gradient-to-br from-orange-500 to-red-500'
               }`}>
-                <span className="text-4xl text-white">📚</span>
+                {library.images && library.images.length > 0 ? (
+                  <img 
+                    src={getImageUrl(library.images[0])}
+                    alt={library.name}
+                    className="w-full h-full object-cover"
+                    onError={handleImageError}
+                  />
+                ) : null}
+                <div 
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ display: (library.images && library.images.length > 0) ? 'none' : 'flex' }}
+                >
+                  <span className="text-4xl text-white">📚</span>
+                </div>
               </div>
               <div className="p-6">
                 <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>

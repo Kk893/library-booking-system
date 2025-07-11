@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
-import axios from 'axios';
+import axios from '../utils/axios';
 import toast from 'react-hot-toast';
 import ImageUpload from '../components/ImageUpload';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -433,10 +434,19 @@ const AdminDashboard = () => {
                       <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
                         <div className="flex items-center space-x-3">
                           {book.coverImage ? (
-                            <img src={book.coverImage} alt={book.title} className="w-10 h-12 object-cover rounded" />
-                          ) : (
-                            <div className="w-10 h-12 bg-gray-300 rounded flex items-center justify-center text-xs">📚</div>
-                          )}
+                            <img 
+                              src={getImageUrl(book.coverImage)}
+                              alt={book.title} 
+                              className="w-10 h-12 object-cover rounded"
+                              onError={handleImageError}
+                            />
+                          ) : null}
+                          <div 
+                            className="w-10 h-12 bg-gray-300 rounded flex items-center justify-center text-xs"
+                            style={{ display: book.coverImage ? 'none' : 'flex' }}
+                          >
+                            📚
+                          </div>
                           <span>{book.title}</span>
                         </div>
                       </td>
@@ -944,8 +954,9 @@ const AdminDashboard = () => {
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Book Cover</label>
                     <ImageUpload 
-                      onImageSelect={(imageUrl, file) => setNewBook({...newBook, coverImage: imageUrl})}
+                      onImageUpload={(fullUrl, relativeUrl) => setNewBook({...newBook, coverImage: relativeUrl})}
                       currentImage={newBook.coverImage}
+                      type="books"
                       placeholder="Upload book cover image"
                     />
                   </div>

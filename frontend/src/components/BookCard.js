@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import axios from '../utils/axios';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 
 const BookCard = ({ book, onReserve }) => {
   const { user } = useAuth();
@@ -63,16 +64,10 @@ const BookCard = ({ book, onReserve }) => {
         }`}>
           {book.coverImage ? (
             <img 
-              src={
-                book.coverImage.startsWith('http') ? book.coverImage :
-                `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${book.coverImage}`
-              }
+              src={getImageUrl(book.coverImage)}
               alt={book.title}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
+              onError={handleImageError}
             />
           ) : null}
           

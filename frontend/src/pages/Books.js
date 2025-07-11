@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import OfferModal from '../components/OfferModal';
 import axios from '../utils/axios';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 
 const Books = () => {
   const { isDark } = useTheme();
@@ -248,7 +249,20 @@ const Books = () => {
                   book.genre === 'Self-Help' ? 'bg-gradient-to-br from-green-500 to-teal-500' :
                   'bg-gradient-to-br from-orange-500 to-red-500'
                 }`}>
-                  <span className="text-4xl text-white">📖</span>
+                  {book.coverImage ? (
+                    <img 
+                      src={getImageUrl(book.coverImage)}
+                      alt={book.title}
+                      className="w-full h-full object-cover"
+                      onError={handleImageError}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-full h-full flex items-center justify-center"
+                    style={{ display: book.coverImage ? 'none' : 'flex' }}
+                  >
+                    <span className="text-4xl text-white">📖</span>
+                  </div>
                   {isSelected && (
                     <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
                       ✓
