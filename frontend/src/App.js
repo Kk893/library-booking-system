@@ -21,6 +21,7 @@ import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import Events from './pages/Events';
+import QRScanner from './pages/QRScanner';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ThemeButton from './components/ThemeButton';
@@ -44,6 +45,7 @@ const AppContent = () => {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/qr-scanner" element={<QRScanner />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

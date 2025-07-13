@@ -651,6 +651,7 @@ const AdminDashboard = () => {
               { id: 'bookings', label: '📅 Bookings' },
               { id: 'users', label: '👥 Users' },
               { id: 'offers', label: '🎁 Offers' },
+              { id: 'qr-entry', label: '📷 QR Entry' },
               { id: 'reports', label: '📈 Reports' }
             ].map((tab) => (
               <button
@@ -1149,6 +1150,42 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* QR Entry Tab */}
+        {activeTab === 'qr-entry' && (
+          <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📷</div>
+              <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                QR Entry & Check-in System
+              </h2>
+              <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                Scan QR codes to validate user entry for seats and events
+              </p>
+              <button
+                onClick={() => window.open('/qr-scanner', '_blank')}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-full font-semibold transition-all transform hover:scale-105 text-lg"
+              >
+                📱 Open QR Scanner
+              </button>
+              
+              <div className="grid md:grid-cols-3 gap-6 mt-8">
+                <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                  <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>📷 Scan QR Code</h3>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Validate user entry with QR codes</p>
+                </div>
+                <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                  <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>⏱️ Entry Logs</h3>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Time-stamped check-in records</p>
+                </div>
+                <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                  <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>📱 Manual Entry</h3>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Fallback entry without QR</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
