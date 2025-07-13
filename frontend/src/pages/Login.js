@@ -36,10 +36,18 @@ const Login = () => {
       console.log('Full error:', error);
       console.log('Error response:', error.response);
       console.log('Error data:', error.response?.data);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.errors?.[0]?.msg || 
+      
+      const errorData = error.response?.data;
+      const errorMessage = errorData?.message || 
+                          errorData?.errors?.[0]?.msg || 
                           'Login failed';
-      toast.error(errorMessage);
+      
+      if (errorData?.needsVerification) {
+        toast.error('📧 Please verify your email first!');
+        // Could redirect to a verification page or show resend option
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
