@@ -168,7 +168,7 @@ const Events = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Filter Tabs */}
         <div className={`mb-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="flex space-x-8 overflow-x-auto">
+          <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-2">
             {[
               { id: 'all', label: '📅 All Events', count: events.length },
               { id: 'upcoming', label: '⏰ Upcoming', count: events.filter(e => new Date(e.date) > new Date()).length },
@@ -179,7 +179,7 @@ const Events = () => {
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id)}
-                className={`pb-4 px-2 font-semibold transition-colors whitespace-nowrap ${
+                className={`pb-4 px-2 font-semibold transition-colors whitespace-nowrap text-sm md:text-base ${
                   filter === tab.id
                     ? `border-b-2 border-blue-500 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
                     : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`

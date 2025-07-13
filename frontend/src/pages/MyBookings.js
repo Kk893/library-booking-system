@@ -108,7 +108,7 @@ const MyBookings = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Filter Tabs */}
         <div className={`mb-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="flex space-x-8">
+          <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-2">
             {[
               { id: 'all', label: '📋 All Bookings', count: bookings.length },
               { id: 'active', label: '✅ Active', count: bookings.filter(b => b.status === 'confirmed').length },
@@ -118,7 +118,7 @@ const MyBookings = () => {
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id)}
-                className={`pb-4 px-2 font-semibold transition-colors ${
+                className={`pb-4 px-2 font-semibold transition-colors whitespace-nowrap text-sm md:text-base ${
                   filter === tab.id
                     ? `border-b-2 border-blue-500 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
                     : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`
@@ -158,7 +158,7 @@ const MyBookings = () => {
                     </div>
                   </div>
                   
-                  <div className="grid md:grid-cols-4 gap-4 text-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-sm">
                     <div>
                       <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date:</span>
                       <p className={isDark ? 'text-white' : 'text-gray-800'}>
@@ -198,7 +198,7 @@ const MyBookings = () => {
                   )}
                 </div>
                 
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col md:flex-row md:space-x-2 md:space-y-0 space-y-2 mt-4 md:mt-0">
                   {booking.status === 'confirmed' && (
                     <>
                       <button

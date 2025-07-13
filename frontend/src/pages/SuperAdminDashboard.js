@@ -419,7 +419,7 @@ const SuperAdminDashboard = () => {
 
         {/* Navigation Tabs */}
         <div className={`mb-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="flex space-x-8">
+          <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-2">
             {[
               { id: 'overview', label: '📊 Overview' },
               { id: 'libraries', label: '🏢 Libraries' },
@@ -435,7 +435,7 @@ const SuperAdminDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-4 px-2 font-semibold transition-colors ${
+                className={`pb-4 px-2 font-semibold transition-colors whitespace-nowrap text-sm md:text-base ${
                   activeTab === tab.id
                     ? `border-b-2 border-red-500 ${isDark ? 'text-red-400' : 'text-red-600'}`
                     : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`
