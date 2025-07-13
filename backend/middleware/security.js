@@ -1,0 +1,120 @@
+const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const User = require('../models/User');
+
+// Security headers
+const securityHeaders = helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+      scriptSrc: ["'self'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+});
+
+// Rate limiting
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // limit login attempts
+  message: { error: 'Too many login attempts, please try again later' }
+});
+
+// Role-based access control
+const requireRole = (roles) => {
+  return async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      if (Array.isArray(roles)) {
+        if (!roles.includes(req.user.role)) {
+          return res.status(403).json({ error: 'Access denied - insufficient permissions' });
+        }
+      } else {
+        if (req.user.role !== roles) {
+          return res.status(403).json({ error: 'Access denied - insufficient permissions' });
+        }
+      }
+
+      next();
+    } catch (error) {
+      res.status(500).json({ error: 'Authorization error' });
+    }
+  };
+};
+
+// Enhanced JWT verification
+const verifyToken = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '') || req.cookies?.accessToken;
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Access denied - no token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid token - user not found' });
+    }
+
+    if (user.tokenVersion !== decoded.tokenVersion) {
+      return res.status(401).json({ error: 'Token invalidated - please login again' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
+    }
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+// Input sanitization
+const sanitizeInput = (req, res, next) => {
+  const sanitize = (obj) => {
+    for (let key in obj) {
+      if (typeof obj[key] === 'string') {
+        obj[key] = obj[key].replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+        obj[key] = obj[key].replace(/javascript:/gi, '');
+        obj[key] = obj[key].replace(/on\w+\s*=/gi, '');
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        sanitize(obj[key]);
+      }
+    }
+  };
+
+  if (req.body) sanitize(req.body);
+  if (req.query) sanitize(req.query);
+  if (req.params) sanitize(req.params);
+  
+  next();
+};
+
+module.exports = {
+  securityHeaders,
+  generalLimiter,
+  authLimiter,
+  requireRole,
+  verifyToken,
+  sanitizeInput
+};

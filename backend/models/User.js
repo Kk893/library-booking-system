@@ -103,7 +103,26 @@ const userSchema = new mongoose.Schema({
   emailVerificationExpires: {
     type: Date,
     default: null
-  }
+  },
+  tokenVersion: {
+    type: Number,
+    default: 0
+  },
+  loginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockUntil: {
+    type: Date
+  },
+  lastLogin: {
+    type: Date
+  },
+  loginHistory: [{
+    ip: String,
+    userAgent: String,
+    timestamp: { type: Date, default: Date.now }
+  }]
 }, {
   timestamps: true
 });
@@ -118,6 +137,43 @@ userSchema.pre('save', async function(next) {
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Check if account is locked
+userSchema.virtual('isLocked').get(function() {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+});
+
+// Increment login attempts
+userSchema.methods.incLoginAttempts = function() {
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return this.updateOne({
+      $unset: { lockUntil: 1, loginAttempts: 1 }
+    });
+  }
+  
+  const updates = { $inc: { loginAttempts: 1 } };
+  
+  if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
+    updates.$set = {
+      lockUntil: Date.now() + 2 * 60 * 60 * 1000 // 2 hours
+    };
+  }
+  
+  return this.updateOne(updates);
+};
+
+// Reset login attempts
+userSchema.methods.resetLoginAttempts = function() {
+  return this.updateOne({
+    $unset: { loginAttempts: 1, lockUntil: 1 }
+  });
+};
+
+// Invalidate all tokens
+userSchema.methods.invalidateTokens = function() {
+  this.tokenVersion += 1;
+  return this.save();
 };
 
 // Index for faster queries

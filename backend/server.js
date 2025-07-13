@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const cookieParser = require('cookie-parser');
+const { securityHeaders, generalLimiter, sanitizeInput } = require('./middleware/security');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -34,15 +36,23 @@ subdirs.forEach(subdir => {
   }
 });
 
-// Middleware
+// Security Middleware
+app.use(securityHeaders);
+app.use(generalLimiter);
+app.use(cookieParser());
+app.use(sanitizeInput);
+
+// CORS Middleware
 app.use(cors({
   origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' })); // Reduced from 50mb for security
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Static file serving with proper headers
 app.use('/uploads', (req, res, next) => {

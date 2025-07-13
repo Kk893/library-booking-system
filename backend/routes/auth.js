@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/emailService');
+const { authLimiter, sanitizeInput } = require('../middleware/security');
 
 const router = express.Router();
 
@@ -83,9 +84,9 @@ router.post('/register', [
 });
 
 // Login (Regular users and admins only)
-router.post('/login', [
+router.post('/login', authLimiter, sanitizeInput, [
   body('email').isEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -100,7 +101,15 @@ router.post('/login', [
     console.log('User found:', user ? 'Yes' : 'No');
     
     if (!user) {
-      return res.status(400).json({ message: 'User not found with this email' });
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+    
+    // Check if account is locked
+    if (user.isLocked) {
+      return res.status(423).json({ 
+        message: 'Account temporarily locked due to too many failed login attempts. Try again later.',
+        lockUntil: user.lockUntil
+      });
     }
     
     // Block super admin from regular login
@@ -112,13 +121,57 @@ router.post('/login', [
     console.log('Password valid:', isPasswordValid);
     
     if (!isPasswordValid) {
-      return res.status(400).json({ message: 'Invalid password' });
+      await user.incLoginAttempts();
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
+    
+    // Reset login attempts on successful login
+    if (user.loginAttempts > 0) {
+      await user.resetLoginAttempts();
+    }
+    
+    // Update login history
+    user.loginHistory.push({
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent'),
+      timestamp: new Date()
+    });
+    
+    // Keep only last 10 login records
+    if (user.loginHistory.length > 10) {
+      user.loginHistory = user.loginHistory.slice(-10);
+    }
+    
+    user.lastLogin = new Date();
+    await user.save();
 
     // Allow login regardless of verification status for now
     // TODO: Implement proper email verification flow later
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ 
+      id: user._id, 
+      tokenVersion: user.tokenVersion 
+    }, process.env.JWT_SECRET, { expiresIn: '30m' });
+    
+    const refreshToken = jwt.sign({ 
+      id: user._id, 
+      tokenVersion: user.tokenVersion 
+    }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: '7d' });
+    
+    // Set secure HTTP-only cookies
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 60 * 1000 // 30 minutes
+    });
+    
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
     
     res.json({
       token,
@@ -415,6 +468,24 @@ router.post('/reset-password', [
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Logout
+router.post('/logout', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (user) {
+      await user.invalidateTokens();
+    }
+    
+    // Clear cookies
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
