@@ -14,6 +14,8 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const { register } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -34,8 +36,9 @@ const Register = () => {
         email: formData.email,
         password: formData.password
       });
-      toast.success('🎉 Account created successfully!');
-      navigate('/');
+      setUserEmail(formData.email);
+      setRegistrationSuccess(true);
+      toast.success('🎉 Account created! Please check your email to verify.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed');
     } finally {
@@ -49,6 +52,63 @@ const Register = () => {
       [e.target.name]: e.target.value
     });
   };
+
+  if (registrationSuccess) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center transition-all duration-300 ${
+        isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-green-50 to-blue-50'
+      }`}>
+        <div className={`max-w-md w-full mx-4 p-8 rounded-2xl shadow-2xl backdrop-blur-lg border transition-all duration-500 ${
+          isDark 
+            ? 'bg-gray-800/90 border-gray-700' 
+            : 'bg-white/90 border-white/20'
+        }`}>
+          <div className="text-center">
+            <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl text-white">📧</span>
+            </div>
+            
+            <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              Check Your Email!
+            </h2>
+            
+            <p className={`mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              We've sent a verification link to <strong>{userEmail}</strong>. 
+              Please check your email and click the verification link to activate your account.
+            </p>
+            
+            <div className={`p-4 rounded-lg mb-6 ${
+              isDark ? 'bg-blue-900/30 border border-blue-700' : 'bg-blue-50 border border-blue-200'
+            }`}>
+              <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                💡 <strong>Tip:</strong> Check your spam folder if you don't see the email.
+                The verification link will expire in 24 hours.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <Link
+                to="/login"
+                className="block w-full text-center bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-105"
+              >
+                Go to Login
+              </Link>
+              
+              <button
+                onClick={() => {
+                  setRegistrationSuccess(false);
+                  setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+                }}
+                className="w-full text-center py-3 rounded-lg font-semibold transition-all border hover:scale-105 bg-gray-500 hover:bg-gray-600 text-white"
+              >
+                Register Another Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex items-center justify-center transition-all duration-300 ${

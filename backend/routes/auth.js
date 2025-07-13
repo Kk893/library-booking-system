@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
-const { sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/emailService');
+const { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -35,15 +35,28 @@ router.post('/register', [
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    const user = new User({ name, email, phone, password, role: role || 'user' });
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+    const user = new User({ 
+      name, 
+      email, 
+      phone, 
+      password, 
+      role: role || 'user',
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpiry,
+      isVerified: false
+    });
     await user.save();
 
-    // Send welcome email
+    // Send verification email
     try {
-      await sendWelcomeEmail(user.email, user.name);
-      console.log('Welcome email sent to:', user.email);
+      await sendVerificationEmail(user.email, user.name, verificationToken);
+      console.log('Verification email sent to:', user.email);
     } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError);
+      console.error('Failed to send verification email:', emailError);
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -225,6 +238,71 @@ router.post('/forgot-password', [
     }
   } catch (error) {
     console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Verify Email
+router.post('/verify-email', [
+  body('token').notEmpty().withMessage('Verification token is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { token } = req.body;
+    
+    // Find user with valid verification token
+    const user = await User.findOne({
+      emailVerificationToken: token,
+      emailVerificationExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        message: 'Invalid or expired verification token. Please request a new verification email.' 
+      });
+    }
+
+    // Verify email
+    user.isVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpires = null;
+    await user.save();
+
+    // Send welcome email after verification
+    try {
+      await sendWelcomeEmail(user.email, user.name);
+      console.log('Welcome email sent to:', user.email);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+    }
+
+    // Generate new JWT token
+    const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      message: 'Email verified successfully! Welcome to Library Booking System.',
+      token: jwtToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        profileImage: user.profileImage,
+        preferences: user.preferences,
+        totalBookings: user.totalBookings,
+        isVerified: user.isVerified,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Email verification error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

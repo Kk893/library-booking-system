@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 
 // Create transporter
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
   secure: false, // true for 465, false for other ports
@@ -28,6 +28,51 @@ const sendEmail = async (to, subject, html) => {
     console.error('Email send error:', error);
     return { success: false, error: error.message };
   }
+};
+
+// Send email verification email
+const sendVerificationEmail = async (userEmail, userName, verificationToken) => {
+  const verificationUrl = `http://localhost:3000/verify-email?token=${verificationToken}`;
+  const subject = 'Verify Your Email Address 📧';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">📧 Verify Your Email</h1>
+      </div>
+      
+      <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h2 style="color: #333; margin-top: 0;">Hello ${userName}! 👋</h2>
+        
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Thank you for registering with Library Booking System! Please verify your email address to complete your account setup.
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+            ✅ Verify Email Address
+          </a>
+        </div>
+        
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="color: #856404; margin: 0; font-size: 14px;">
+            ⚠️ This verification link will expire in 24 hours. If you didn't create this account, please ignore this email.
+          </p>
+        </div>
+        
+        <p style="color: #666; font-size: 14px; text-align: center; margin-top: 30px;">
+          Welcome to our community! 🎉<br>
+          <strong>The Library Booking Team</strong>
+        </p>
+      </div>
+      
+      <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+        <p>© 2024 Library Booking System. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  return await sendEmail(userEmail, subject, html);
 };
 
 // Send welcome email
@@ -180,6 +225,7 @@ const sendBookingConfirmationEmail = async (userEmail, userName, bookingDetails)
 
 module.exports = {
   sendEmail,
+  sendVerificationEmail,
   sendWelcomeEmail,
   sendPasswordResetEmail,
   sendBookingConfirmationEmail
