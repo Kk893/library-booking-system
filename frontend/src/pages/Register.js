@@ -12,6 +12,8 @@ const Register = () => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -139,12 +141,12 @@ const Register = () => {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className={`w-full px-4 py-3 pl-12 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  className={`w-full px-4 py-3 pl-12 pr-12 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                     isDark 
                       ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'
@@ -156,6 +158,15 @@ const Register = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <span className="text-xl">
+                    {showPassword ? '🙈' : '👁️'}
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -165,12 +176,12 @@ const Register = () => {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  className={`w-full px-4 py-3 pl-12 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  className={`w-full px-4 py-3 pl-12 pr-12 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                     isDark 
                       ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'
@@ -182,6 +193,15 @@ const Register = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <span className="text-xl">
+                    {showConfirmPassword ? '🙈' : '👁️'}
+                  </span>
+                </button>
               </div>
             </div>
 

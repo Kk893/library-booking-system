@@ -1,8 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
+const { sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -35,6 +37,14 @@ router.post('/register', [
 
     const user = new User({ name, email, phone, password, role: role || 'user' });
     await user.save();
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(user.email, user.name);
+      console.log('Welcome email sent to:', user.email);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+    }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
@@ -167,6 +177,111 @@ router.post('/superadmin-login', [
     });
   } catch (error) {
     console.error('Super Admin login error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Forgot Password
+router.post('/forgot-password', [
+  body('email').isEmail().withMessage('Valid email is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with this email address' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+    // Save reset token to user
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiry;
+    await user.save();
+
+    // Send reset email
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetToken);
+      console.log('Password reset email sent to:', user.email);
+      
+      res.json({ 
+        message: 'Password reset email sent successfully! Please check your email.',
+        success: true 
+      });
+    } catch (emailError) {
+      console.error('Failed to send reset email:', emailError);
+      res.status(500).json({ 
+        message: 'Failed to send reset email. Please try again later.',
+        error: emailError.message 
+      });
+    }
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Reset Password
+router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Reset token is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { token, password } = req.body;
+    
+    // Find user with valid reset token
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        message: 'Invalid or expired reset token. Please request a new password reset.' 
+      });
+    }
+
+    // Update password
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    // Generate new JWT token
+    const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      message: 'Password reset successful! You are now logged in.',
+      token: jwtToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        profileImage: user.profileImage,
+        preferences: user.preferences,
+        totalBookings: user.totalBookings,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

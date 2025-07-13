@@ -389,47 +389,52 @@ const AdminDashboard = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       // Fetch real data from APIs
-      const [booksRes, usersRes, offersRes, libraryRes] = await Promise.all([
+      const [booksRes, usersRes, offersRes, libraryRes, bookingsRes] = await Promise.all([
         axios.get('/api/admin/books', { headers }).catch(() => ({ data: [] })),
         axios.get('/api/admin/library-users', { headers }).catch(() => ({ data: [] })),
         axios.get('/api/admin/admin-offers', { headers }).catch(() => ({ data: [] })),
-        axios.get('/api/admin/my-library', { headers }).catch(() => ({ data: null }))
+        axios.get('/api/admin/my-library', { headers }).catch(() => ({ data: null })),
+        axios.get('/api/admin/bookings', { headers }).catch(() => ({ data: [] }))
       ]);
       
       console.log('Books data:', booksRes.data);
       console.log('Users data:', usersRes.data);
       console.log('Offers data:', offersRes.data);
+      console.log('Bookings data:', bookingsRes.data);
       
       setBooks(booksRes.data || []);
       setLibraryUsers(usersRes.data || []);
       setOffers(offersRes.data || []);
       setLibrary(libraryRes.data);
       
-      // Generate realistic stats
+      // Use real bookings data or fallback to mock data
+      const realBookings = bookingsRes.data || [];
+      const processedBookings = realBookings.map(booking => ({
+        ...booking,
+        userName: booking.user?.name || booking.userName || 'Unknown User',
+        bookTitle: booking.book?.title || booking.bookTitle || 'Unknown Book',
+        seatNumber: booking.seatNumber || 'N/A',
+        date: booking.date ? new Date(booking.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        amount: booking.amount || 0
+      }));
+      
+      setBookings(processedBookings);
+      
+      // Calculate real stats from processed bookings
       const totalBooks = booksRes.data?.length || 0;
       const totalUsers = usersRes.data?.length || 0;
-      const mockBookings = [
-        { _id: '1', userName: 'Alice Johnson', type: 'seat', seatNumber: 'A-15', date: new Date().toISOString().split('T')[0], status: 'confirmed', amount: 150 },
-        { _id: '2', userName: 'Bob Smith', type: 'book', bookTitle: 'JavaScript Guide', date: new Date(Date.now() - 86400000).toISOString().split('T')[0], status: 'pending', amount: 0 },
-        { _id: '3', userName: 'Carol Davis', type: 'seat', seatNumber: 'B-08', date: new Date().toISOString().split('T')[0], status: 'confirmed', amount: 200 },
-        { _id: '4', userName: 'David Wilson', type: 'seat', seatNumber: 'C-12', date: new Date().toISOString().split('T')[0], status: 'confirmed', amount: 175 },
-        { _id: '5', userName: 'Emma Brown', type: 'book', bookTitle: 'React Handbook', date: new Date(Date.now() - 172800000).toISOString().split('T')[0], status: 'confirmed', amount: 0 }
-      ];
-      
-      setBookings(mockBookings);
-      
-      const confirmedBookings = mockBookings.filter(b => b.status === 'confirmed');
-      const todayBookings = mockBookings.filter(b => b.date === new Date().toISOString().split('T')[0]);
-      const totalRevenue = confirmedBookings.reduce((sum, b) => sum + b.amount, 0);
+      const confirmedBookings = processedBookings.filter(b => b.status === 'confirmed');
+      const todayBookings = processedBookings.filter(b => b.date === new Date().toISOString().split('T')[0]);
+      const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (b.amount || 0), 0);
       
       setStats({
-        totalBookings: mockBookings.length,
+        totalBookings: processedBookings.length,
         todayBookings: todayBookings.length,
         totalRevenue,
         totalBooks,
         totalUsers,
         confirmedBookings: confirmedBookings.length,
-        pendingBookings: mockBookings.filter(b => b.status === 'pending').length
+        pendingBookings: processedBookings.filter(b => b.status === 'pending').length
       });
       
 
@@ -508,11 +513,24 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleUpdateBookingStatus = (id, status) => {
-    setBookings(bookings.map(booking => 
-      booking._id === id ? { ...booking, status } : booking
-    ));
-    toast.success(`📋 Booking ${status} successfully!`);
+  const handleUpdateBookingStatus = async (id, status) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      await axios.put(`/api/admin/bookings/${id}`, { status }, { headers });
+      
+      setBookings(bookings.map(booking => 
+        booking._id === id ? { ...booking, status } : booking
+      ));
+      toast.success(`📋 Booking ${status} successfully!`);
+      
+      // Refresh data to get updated stats
+      fetchAdminData();
+    } catch (error) {
+      console.error('Update booking status error:', error);
+      toast.error('Failed to update booking status');
+    }
   };
 
   const handleAddOffer = async (e) => {
@@ -977,7 +995,10 @@ const AdminDashboard = () => {
                         {booking.type === 'seat' ? '🪑 Seat' : '📚 Book'}
                       </td>
                       <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {booking.type === 'seat' ? booking.seatNumber : booking.bookTitle}
+                        {booking.type === 'seat' ? 
+                          (booking.seatNumber && booking.seatNumber !== 'N/A' ? booking.seatNumber : 'Seat Booking') : 
+                          (booking.bookTitle || 'Book Reservation')
+                        }
                       </td>
                       <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                         {booking.date}

@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import Libraries from './pages/Libraries';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminLogin from './pages/SuperAdminLogin';
@@ -39,6 +41,8 @@ const AppContent = () => {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/superadmin-login" element={<SuperAdminLogin />} />
           
           <Route path="/profile" element={<Profile />} />

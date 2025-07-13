@@ -10,6 +10,7 @@ const Login = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -116,12 +117,12 @@ const Login = () => {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className={`w-full px-4 py-3 pl-12 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-4 py-3 pl-12 pr-12 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     isDark 
                       ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' 
                       : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'
@@ -133,6 +134,15 @@ const Login = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <span className="text-xl">
+                    {showPassword ? '🙈' : '👁️'}
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -153,6 +163,16 @@ const Login = () => {
               </button>
             </div>
           </form>
+
+          {/* Forgot Password Link */}
+          <div className="mt-4 text-center animate-fade-in-up animation-delay-700">
+            <Link 
+              to="/forgot-password" 
+              className="text-sm text-blue-500 hover:text-blue-600 font-semibold transition-colors duration-300"
+            >
+              🔐 Forgot your password?
+            </Link>
+          </div>
 
           {/* Footer */}
           <div className="mt-8 text-center animate-fade-in-up animation-delay-800">

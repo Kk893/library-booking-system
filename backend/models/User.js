@@ -87,6 +87,14 @@ const userSchema = new mongoose.Schema({
       const levels = { user: 1, admin: 2, superadmin: 3 };
       return levels[this.role] || 1;
     }
+  },
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
