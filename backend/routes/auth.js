@@ -115,13 +115,8 @@ router.post('/login', [
       return res.status(400).json({ message: 'Invalid password' });
     }
 
-    // Check if email is verified (for new users)
-    if (user.isVerified === false && user.emailVerificationToken) {
-      return res.status(400).json({ 
-        message: 'Please verify your email address before logging in. Check your email for verification link.',
-        needsVerification: true
-      });
-    }
+    // Allow login regardless of verification status for now
+    // TODO: Implement proper email verification flow later
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
