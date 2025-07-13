@@ -19,6 +19,8 @@ import Books from './pages/Books';
 import Offers from './pages/Offers';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
+import Events from './pages/Events';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ThemeButton from './components/ThemeButton';
@@ -40,6 +42,8 @@ const AppContent = () => {
           <Route path="/books" element={<Books />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/favorites" element={<Favorites />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

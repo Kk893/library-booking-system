@@ -98,6 +98,18 @@ const Navbar = () => {
             }`}>
               🎁 Offers
             </Link>
+            <Link to="/events" className={`font-medium transition-colors ${
+              isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
+            }`}>
+              🎆 Events
+            </Link>
+            {user && (
+              <Link to="/notifications" className={`font-medium transition-colors ${
+                isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
+              }`}>
+                🔔 Notifications
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">

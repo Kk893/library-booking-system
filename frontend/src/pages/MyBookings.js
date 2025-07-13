@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import QRCode from 'react-qr-code';
 
 const MyBookings = () => {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [showQR, setShowQR] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -198,12 +200,20 @@ const MyBookings = () => {
                 
                 <div className="flex flex-col space-y-2">
                   {booking.status === 'confirmed' && (
-                    <button
-                      onClick={() => handleCancelBooking(booking._id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-                    >
-                      🚫 Cancel
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setShowQR(booking)}
+                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                      >
+                        📱 QR Code
+                      </button>
+                      <button
+                        onClick={() => handleCancelBooking(booking._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                      >
+                        🚫 Cancel
+                      </button>
+                    </>
                   )}
                   
                   <button
@@ -239,6 +249,55 @@ const MyBookings = () => {
           </div>
         )}
       </div>
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="text-center">
+              <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                🎟️ Entry QR Code
+              </h3>
+              
+              <div className="bg-white p-4 rounded-lg mb-4">
+                <QRCode
+                  value={JSON.stringify({
+                    bookingId: showQR._id,
+                    userId: user.id,
+                    libraryId: showQR.libraryId._id,
+                    type: showQR.type,
+                    date: showQR.date,
+                    seatNumber: showQR.seatNumber,
+                    status: showQR.status
+                  })}
+                  size={200}
+                  level="M"
+                />
+              </div>
+              
+              <div className={`text-sm mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                <p><strong>Booking ID:</strong> {showQR._id.slice(-8)}</p>
+                <p><strong>Library:</strong> {showQR.libraryId.name}</p>
+                <p><strong>Date:</strong> {new Date(showQR.date).toLocaleDateString()}</p>
+                {showQR.seatNumber && <p><strong>Seat:</strong> {showQR.seatNumber}</p>}
+              </div>
+              
+              <div className={`p-3 rounded-lg mb-4 ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
+                <p className={`text-xs ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                  📱 Show this QR code at the library entrance for quick entry
+                </p>
+              </div>
+              
+              <button
+                onClick={() => setShowQR(null)}
+                className="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg font-semibold transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
