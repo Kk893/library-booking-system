@@ -47,7 +47,8 @@ app.use(cors({
   origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'],
+  exposedHeaders: ['Content-Length', 'Content-Type']
 }));
 
 // Body parsing middleware
@@ -59,13 +60,25 @@ app.use('/uploads', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Cache-Control', 'public, max-age=86400'); // 24 hours cache
   next();
-}, express.static(path.join(__dirname, 'uploads')));
+}, express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '1d',
+  etag: false
+}));
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Library API is running!' });
 });
+
+// Reset rate limits (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/dev/reset-limits', (req, res) => {
+    // This would reset rate limiting stores in a real implementation
+    res.json({ message: 'Rate limits reset (development only)' });
+  });
+}
 
 // Routes
 app.use('/api/auth', authRoutes);

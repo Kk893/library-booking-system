@@ -154,9 +154,9 @@ userSchema.methods.incLoginAttempts = function() {
   
   const updates = { $inc: { loginAttempts: 1 } };
   
-  if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
+  if (this.loginAttempts + 1 >= 8 && !this.isLocked) { // increased from 5 to 8
     updates.$set = {
-      lockUntil: Date.now() + 2 * 60 * 60 * 1000 // 2 hours
+      lockUntil: Date.now() + 30 * 60 * 1000 // reduced from 2 hours to 30 minutes
     };
   }
   

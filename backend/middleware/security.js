@@ -10,8 +10,9 @@ const securityHeaders = helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
-      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "http://localhost:5000", "http://127.0.0.1:5000"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000"]
     },
   },
   hsts: {
@@ -24,13 +25,19 @@ const securityHeaders = helmet({
 // Rate limiting
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 200, // increased from 100 to 200
+  skipSuccessfulRequests: true,
   message: { error: 'Too many requests, please try again later' }
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // limit login attempts
+  max: 10, // increased from 5 to 10
+  skipSuccessfulRequests: true, // don't count successful requests
+  keyGenerator: (req) => {
+    // Use combination of IP and email for more granular limiting
+    return `${req.ip}-${req.body.email || 'unknown'}`;
+  },
   message: { error: 'Too many login attempts, please try again later' }
 });
 
