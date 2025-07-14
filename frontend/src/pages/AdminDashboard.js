@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import ImageUpload from '../components/ImageUpload';
 import MultipleImageUpload from '../components/MultipleImageUpload';
 import { getImageUrl, handleImageError } from '../utils/imageUtils';
+import AdminNotificationPanel from '../components/AdminNotificationPanel';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -651,6 +652,7 @@ const AdminDashboard = () => {
               { id: 'bookings', label: '📅 Bookings' },
               { id: 'users', label: '👥 Users' },
               { id: 'offers', label: '🎁 Offers' },
+              { id: 'notifications', label: '📢 Notifications' },
               { id: 'qr-entry', label: '📷 QR Entry' },
               { id: 'reports', label: '📈 Reports' }
             ].map((tab) => (
@@ -1150,6 +1152,66 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === 'notifications' && (
+          <div className="space-y-6">
+            <AdminNotificationPanel />
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>📋 Quick Notification Templates</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <button 
+                  onClick={() => {
+                    const message = 'New books have been added to the library catalog. Check them out!';
+                    navigator.clipboard.writeText(message);
+                    toast.success('Template copied to clipboard!');
+                  }}
+                  className="p-4 text-left rounded-lg border border-blue-200 hover:bg-blue-50 transition-all"
+                >
+                  <h4 className="font-semibold text-blue-600">📚 New Books Added</h4>
+                  <p className="text-sm text-gray-600 mt-1">Notify users about new book arrivals</p>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    const message = 'Library will be closed tomorrow for maintenance. Please plan accordingly.';
+                    navigator.clipboard.writeText(message);
+                    toast.success('Template copied to clipboard!');
+                  }}
+                  className="p-4 text-left rounded-lg border border-orange-200 hover:bg-orange-50 transition-all"
+                >
+                  <h4 className="font-semibold text-orange-600">🔧 Maintenance Notice</h4>
+                  <p className="text-sm text-gray-600 mt-1">Inform about library closure</p>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    const message = 'Special weekend offer: 50% off on all seat bookings this Saturday and Sunday!';
+                    navigator.clipboard.writeText(message);
+                    toast.success('Template copied to clipboard!');
+                  }}
+                  className="p-4 text-left rounded-lg border border-green-200 hover:bg-green-50 transition-all"
+                >
+                  <h4 className="font-semibold text-green-600">🎁 Weekend Offer</h4>
+                  <p className="text-sm text-gray-600 mt-1">Promote special discounts</p>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    const message = 'Reminder: Please return your borrowed books on time to avoid late fees.';
+                    navigator.clipboard.writeText(message);
+                    toast.success('Template copied to clipboard!');
+                  }}
+                  className="p-4 text-left rounded-lg border border-red-200 hover:bg-red-50 transition-all"
+                >
+                  <h4 className="font-semibold text-red-600">⏰ Return Reminder</h4>
+                  <p className="text-sm text-gray-600 mt-1">Remind about book returns</p>
+                </button>
+              </div>
             </div>
           </div>
         )}

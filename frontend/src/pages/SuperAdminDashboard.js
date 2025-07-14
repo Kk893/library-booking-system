@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import AddLibraryModal from '../components/AddLibraryModal';
 import EditLibraryModal from '../components/EditLibraryModal';
 import Terminal from '../components/Terminal';
+import AdminNotificationPanel from '../components/AdminNotificationPanel';
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
@@ -427,6 +428,7 @@ const SuperAdminDashboard = () => {
               { id: 'users', label: '👥 Users' },
               { id: 'offers', label: '🎁 Offers' },
               { id: 'events', label: '🎆 Events' },
+              { id: 'notifications', label: '📢 Notifications' },
               { id: 'ratings', label: '⭐ Ratings' },
               { id: 'settings', label: '⚙️ Settings' },
               { id: 'system', label: '🔧 System' },
@@ -1434,6 +1436,53 @@ const SuperAdminDashboard = () => {
                   <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>📄 Export Data</h3>
                   <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Download event analytics</p>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="space-y-6">
+            <AdminNotificationPanel />
+            
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'}`}>
+              <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>👑 Super Admin Notifications</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <button 
+                  onClick={() => {
+                    const message = 'System maintenance scheduled for tonight. All services will be temporarily unavailable.';
+                    navigator.clipboard.writeText(message);
+                    toast.success('Template copied!');
+                  }}
+                  className="p-4 text-left rounded-lg border border-red-200 hover:bg-red-50 transition-all"
+                >
+                  <h4 className="font-semibold text-red-600">🔧 System Maintenance</h4>
+                  <p className="text-sm text-gray-600 mt-1">Critical system updates</p>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    const message = 'New library branch opening next month! Stay tuned for more details.';
+                    navigator.clipboard.writeText(message);
+                    toast.success('Template copied!');
+                  }}
+                  className="p-4 text-left rounded-lg border border-blue-200 hover:bg-blue-50 transition-all"
+                >
+                  <h4 className="font-semibold text-blue-600">🏢 New Branch</h4>
+                  <p className="text-sm text-gray-600 mt-1">Expansion announcements</p>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    const message = 'Platform-wide security update completed. All user data remains secure.';
+                    navigator.clipboard.writeText(message);
+                    toast.success('Template copied!');
+                  }}
+                  className="p-4 text-left rounded-lg border border-green-200 hover:bg-green-50 transition-all"
+                >
+                  <h4 className="font-semibold text-green-600">🔒 Security Update</h4>
+                  <p className="text-sm text-gray-600 mt-1">Security notifications</p>
+                </button>
               </div>
             </div>
           </div>

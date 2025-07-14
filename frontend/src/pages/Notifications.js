@@ -23,7 +23,22 @@ const Notifications = () => {
 
   const fetchNotifications = async () => {
     try {
-      // Mock notifications for now
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      try {
+        const response = await axios.get('/api/notifications', { headers });
+        const realNotifications = response.data || [];
+        
+        if (realNotifications.length > 0) {
+          setNotifications(realNotifications);
+          return;
+        }
+      } catch (apiError) {
+        console.log('Using mock data:', apiError.message);
+      }
+      
+      // Fallback to mock notifications
       const mockNotifications = [
         {
           _id: '1',
@@ -74,6 +89,11 @@ const Notifications = () => {
 
   const markAsRead = async (notificationId) => {
     try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      await axios.put(`/api/notifications/${notificationId}/read`, {}, { headers });
+      
       setNotifications(notifications.map(notif => 
         notif._id === notificationId ? { ...notif, read: true } : notif
       ));
