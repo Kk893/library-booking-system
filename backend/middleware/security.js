@@ -5,21 +5,8 @@ const User = require('../models/User');
 
 // Security headers
 const securityHeaders = helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "http://localhost:5000", "http://127.0.0.1:5000"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000"]
-    },
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
+  contentSecurityPolicy: false, // Disable CSP for now to fix images
+  hsts: false // Disable HSTS for localhost
 });
 
 // Rate limiting

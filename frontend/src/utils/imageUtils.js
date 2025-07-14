@@ -20,13 +20,16 @@ export const getImageUrl = (imagePath) => {
     return imagePath;
   }
   
-  // If it's a relative path, prepend the API base URL
-  if (imagePath.startsWith('/')) {
-    return `${API_BASE_URL}${imagePath}`;
+  // Clean the path
+  let cleanPath = imagePath;
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
   }
   
-  // If it doesn't start with /, add it
-  return `${API_BASE_URL}/${imagePath}`;
+  // Return full URL
+  const fullUrl = `${API_BASE_URL}/${cleanPath}`;
+  console.log('Image URL:', fullUrl); // Debug log
+  return fullUrl;
 };
 
 /**

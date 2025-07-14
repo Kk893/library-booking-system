@@ -21,6 +21,15 @@ const imagesRoutes = require('./routes/images');
 
 const app = express();
 
+// Static file serving FIRST (before security middleware)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Cache-Control', 'public, max-age=86400');
+  }
+}));
+
 // Create uploads directories
 const uploadsDir = path.join(__dirname, 'uploads');
 const subdirs = ['profiles', 'books', 'libraries', 'general', 'samples'];
@@ -36,15 +45,16 @@ subdirs.forEach(subdir => {
   }
 });
 
-// Security Middleware
+// Security Middleware (skip for uploads)
+app.use('/uploads', (req, res, next) => next()); // Skip security for images
 app.use(securityHeaders);
 app.use(generalLimiter);
 app.use(cookieParser());
 app.use(sanitizeInput);
 
-// CORS Middleware
+// CORS Middleware - Allow all origins for images
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'],
@@ -55,21 +65,21 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // Reduced from 50mb for security
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Static file serving with proper headers
-app.use('/uploads', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  res.header('Cache-Control', 'public, max-age=86400'); // 24 hours cache
-  next();
-}, express.static(path.join(__dirname, 'uploads'), {
-  maxAge: '1d',
-  etag: false
-}));
+// Static files already served above
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Library API is running!' });
+});
+
+// Test image endpoint
+app.get('/test-image', (req, res) => {
+  const imagePath = path.join(__dirname, 'uploads', 'samples', 'sample.png');
+  if (fs.existsSync(imagePath)) {
+    res.sendFile(imagePath);
+  } else {
+    res.status(404).json({ error: 'Test image not found' });
+  }
 });
 
 // Reset rate limits (development only)

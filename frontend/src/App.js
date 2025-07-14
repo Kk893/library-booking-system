@@ -23,6 +23,7 @@ import Notifications from './pages/Notifications';
 import Events from './pages/Events';
 import QRScanner from './pages/QRScanner';
 import GlobalEvents from './pages/GlobalEvents';
+import ImageTest from './components/ImageTest';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ThemeButton from './components/ThemeButton';
@@ -48,6 +49,7 @@ const AppContent = () => {
           <Route path="/events" element={<Events />} />
           <Route path="/qr-scanner" element={<QRScanner />} />
           <Route path="/global-events" element={<GlobalEvents />} />
+          <Route path="/test-images" element={<ImageTest />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
