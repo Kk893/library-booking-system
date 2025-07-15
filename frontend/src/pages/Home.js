@@ -184,7 +184,7 @@ const Home = () => {
           <LibrarySlider libraries={filteredLibraries} title="📖 Libraries Near You" />
           <div className="px-4 mt-2">
             <Link to="/libraries" className="text-xs text-red-500 font-medium flex items-center justify-end">
-              View All <span className="ml-1">→</span>
+              See More <span className="ml-1">→</span>
             </Link>
           </div>
         </div>
@@ -197,7 +197,7 @@ const Home = () => {
           />
           <div className="px-4 mt-2">
             <Link to="/libraries?filter=popular" className="text-xs text-red-500 font-medium flex items-center justify-end">
-              View All <span className="ml-1">→</span>
+              Explore More <span className="ml-1">→</span>
             </Link>
           </div>
         </div>
@@ -210,7 +210,7 @@ const Home = () => {
           />
           <div className="px-4 mt-2">
             <Link to="/libraries?filter=recent" className="text-xs text-red-500 font-medium flex items-center justify-end">
-              View All <span className="ml-1">→</span>
+              Show More <span className="ml-1">→</span>
             </Link>
           </div>
         </div>
