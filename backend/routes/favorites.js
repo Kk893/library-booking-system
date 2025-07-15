@@ -40,7 +40,7 @@ router.post('/add/:bookId', auth, async (req, res) => {
     });
 
     if (existingFavorite) {
-      return res.status(400).json({ message: 'Book already in favorites' });
+      return res.status(200).json({ message: 'Book already in favorites', favorite: existingFavorite });
     }
 
     const favorite = new Favorite({
@@ -52,6 +52,11 @@ router.post('/add/:bookId', auth, async (req, res) => {
     await favorite.save();
     res.status(201).json({ message: 'Book added to favorites', favorite });
   } catch (error) {
+    if (error.code === 11000) {
+      // Duplicate key error - book already in favorites
+      return res.status(200).json({ message: 'Book already in favorites' });
+    }
+    console.error('Add favorite error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -65,11 +70,12 @@ router.delete('/remove/:bookId', auth, async (req, res) => {
     });
 
     if (!favorite) {
-      return res.status(404).json({ message: 'Favorite not found' });
+      return res.status(200).json({ message: 'Book not in favorites' });
     }
 
     res.json({ message: 'Book removed from favorites' });
   } catch (error) {
+    console.error('Remove favorite error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

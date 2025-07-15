@@ -23,6 +23,7 @@ const BookCard = ({ book, onReserve }) => {
       setIsFavorite(response.data.isFavorite);
     } catch (error) {
       console.error('Error checking favorite status:', error);
+      setIsFavorite(false);
     }
   };
 
@@ -34,17 +35,22 @@ const BookCard = ({ book, onReserve }) => {
     }
 
     setLoading(true);
+    const previousState = isFavorite;
+    
     try {
       if (isFavorite) {
         await axios.delete(`/api/favorites/remove/${book._id}`);
-        toast.success('💔 Removed from favorites');
         setIsFavorite(false);
+        toast.success('💔 Removed from favorites');
       } else {
         await axios.post(`/api/favorites/add/${book._id}`);
-        toast.success('❤️ Added to favorites');
         setIsFavorite(true);
+        toast.success('❤️ Added to favorites');
       }
     } catch (error) {
+      // Revert state on error
+      setIsFavorite(previousState);
+      console.error('Favorite toggle error:', error);
       toast.error(error.response?.data?.message || 'Failed to update favorites');
     } finally {
       setLoading(false);
