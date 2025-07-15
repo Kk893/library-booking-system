@@ -58,7 +58,9 @@ const Home = () => {
   return (
     <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Mobile Offer Banner */}
-      <OfferBanner />
+      <div className="md:hidden">
+        <OfferBanner />
+      </div>
 
 
       {/* Search Bar - Hidden on mobile */}
@@ -94,20 +96,20 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Hero Banner */}
-      <div className="relative h-96 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
+      {/* Hero Banner - Hidden on mobile */}
+      <div className="hidden md:block relative h-96 bg-gradient-to-r from-red-500 to-pink-500 overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-30"></div>
-        <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+        <div className="relative z-10 mobile-container h-full flex items-center">
           <div className="text-white max-w-2xl">
-            <h1 className="text-5xl font-bold mb-4">
+            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
               Discover Your Perfect Reading Space
             </h1>
-            <p className="text-xl mb-6">
+            <p className="text-lg lg:text-xl mb-6">
               Find libraries, reserve seats, and immerse yourself in knowledge
             </p>
             <Link 
               to="/libraries"
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg inline-block"
+              className="btn-primary"
             >
               Explore Libraries
             </Link>
@@ -115,16 +117,16 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className={`border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <div className="container mx-auto px-4">
+      {/* Filter Tabs - Hidden on mobile */}
+      <div className={`hidden md:block border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="mobile-container">
           <div className="flex space-x-8 py-4">
             <button 
               onClick={() => handleFilterChange('all')}
               className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'all'
-                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
-                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+                  ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
+                  : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
               }`}
             >
               📚 All Libraries
@@ -133,8 +135,8 @@ const Home = () => {
               onClick={() => handleFilterChange('popular')}
               className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'popular'
-                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
-                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+                  ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
+                  : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
               }`}
             >
               ⭐ Popular
@@ -143,8 +145,8 @@ const Home = () => {
               onClick={() => handleFilterChange('recent')}
               className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'recent'
-                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
-                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+                  ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
+                  : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
               }`}
             >
               🆕 Recently Added
@@ -153,8 +155,8 @@ const Home = () => {
               onClick={() => handleFilterChange('rated')}
               className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'rated'
-                  ? `border-b-2 border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
-                  : `${isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`
+                  ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
+                  : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
               }`}
             >
               🏆 Top Rated
@@ -221,15 +223,15 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className={`py-16 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className="container mx-auto px-4">
-          <h2 className={`text-3xl font-bold text-center mb-12 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+      {/* Features Section - Hidden on mobile */}
+      <div className={`hidden md:block py-16 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        <div className="mobile-container">
+          <h2 className={`mobile-heading text-center mb-12 ${isDark ? 'text-white' : 'text-gray-800'}`}>
             Why Choose LibraryBook?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-gradient-to-r from-red-500 to-pink-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl text-white">🎯</span>
               </div>
               <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
@@ -251,7 +253,7 @@ const Home = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="bg-gradient-to-r from-pink-500 to-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-gradient-to-r from-purple-500 to-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl text-white">💳</span>
               </div>
               <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>

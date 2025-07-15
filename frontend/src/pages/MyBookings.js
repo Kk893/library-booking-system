@@ -82,22 +82,22 @@ const MyBookings = () => {
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className={`shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
+        <div className="mobile-container py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              <h1 className={`mobile-heading ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 📅 My Bookings
               </h1>
-              <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p className={`mobile-text ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                 Manage your library bookings
               </p>
             </div>
             <button
               onClick={() => navigate('/libraries')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-full font-semibold transition-all transform hover:scale-105"
+              className="btn-primary text-sm sm:text-base px-4 sm:px-6"
             >
               + New Booking
             </button>
@@ -105,12 +105,12 @@ const MyBookings = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="mobile-container py-6 sm:py-8">
         {/* Filter Tabs */}
-        <div className={`mb-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-2">
+        <div className={`mb-6 sm:mb-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto pb-2 horizontal-scroll">
             {[
-              { id: 'all', label: '📋 All Bookings', count: bookings.length },
+              { id: 'all', label: '📋 All', count: bookings.length },
               { id: 'active', label: '✅ Active', count: bookings.filter(b => b.status === 'confirmed').length },
               { id: 'pending', label: '⏳ Pending', count: bookings.filter(b => b.status === 'pending').length },
               { id: 'cancelled', label: '❌ Cancelled', count: bookings.filter(b => b.status === 'cancelled').length }
@@ -118,13 +118,15 @@ const MyBookings = () => {
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id)}
-                className={`pb-4 px-2 font-semibold transition-colors whitespace-nowrap text-sm md:text-base ${
+                className={`pb-3 px-2 font-semibold transition-colors whitespace-nowrap text-xs sm:text-sm md:text-base ${
                   filter === tab.id
-                    ? `border-b-2 border-blue-500 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                    ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
                     : `${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`
                 }`}
               >
-                {tab.label} ({tab.count})
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                <span className="ml-1">({tab.count})</span>
               </button>
             ))}
           </div>
@@ -135,9 +137,7 @@ const MyBookings = () => {
           {filteredBookings.map((booking) => (
             <div
               key={booking._id}
-              className={`backdrop-blur-lg rounded-2xl p-6 transition-all hover:shadow-lg ${
-                isDark ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/80 border border-white/20'
-              }`}
+              className={`card ${isDark ? 'card-dark' : ''} animate-fadeInUp`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -158,10 +158,10 @@ const MyBookings = () => {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mobile-text">
                     <div>
                       <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date:</span>
-                      <p className={isDark ? 'text-white' : 'text-gray-800'}>
+                      <p className={`${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>
                         {new Date(booking.date).toLocaleDateString()}
                       </p>
                     </div>
@@ -169,13 +169,13 @@ const MyBookings = () => {
                     {booking.timeSlot && (
                       <div>
                         <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Time:</span>
-                        <p className={isDark ? 'text-white' : 'text-gray-800'}>{booking.timeSlot}</p>
+                        <p className={`${isDark ? 'text-white' : 'text-gray-800'} font-medium`}>{booking.timeSlot}</p>
                       </div>
                     )}
                     
                     <div>
                       <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Amount:</span>
-                      <p className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      <p className={`font-bold text-red-500`}>
                         ₹{booking.amount || 0}
                       </p>
                     </div>
@@ -198,18 +198,18 @@ const MyBookings = () => {
                   )}
                 </div>
                 
-                <div className="flex flex-col md:flex-row md:space-x-2 md:space-y-0 space-y-2 mt-4 md:mt-0">
+                <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0">
                   {booking.status === 'confirmed' && (
                     <>
                       <button
                         onClick={() => setShowQR(booking)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all"
                       >
-                        📱 QR Code
+                        📱 QR
                       </button>
                       <button
                         onClick={() => handleCancelBooking(booking._id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all"
                       >
                         🚫 Cancel
                       </button>
@@ -218,9 +218,9 @@ const MyBookings = () => {
                   
                   <button
                     onClick={() => navigate(`/libraries/${booking.libraryId._id}`)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all"
                   >
-                    📍 View Library
+                    📍 Library
                   </button>
                 </div>
               </div>
