@@ -11,11 +11,16 @@ router.get('/my-favorites', auth, async (req, res) => {
     const favorites = await Favorite.find({ userId: req.user._id })
       .populate({
         path: 'bookId',
+        match: { isActive: true },
         populate: { path: 'libraryId', select: 'name city area' }
       })
+      .populate('libraryId', 'name city area')
       .sort({ createdAt: -1 });
 
-    res.json(favorites);
+    // Filter out favorites where book or library doesn't exist
+    const validFavorites = favorites.filter(fav => fav.bookId && fav.libraryId);
+    
+    res.json(validFavorites);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
