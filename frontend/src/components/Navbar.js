@@ -43,16 +43,16 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`shadow-lg sticky top-0 z-50 transition-all duration-300 ${
+    <nav className={`shadow-lg sticky top-0 z-50 transition-all duration-300 hidden md:block ${
       isDark ? 'bg-gray-900' : 'bg-white'
     }`}>
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
+      <div className="mobile-container">
+        <div className="flex justify-between items-center py-3 sm:py-4">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">📖</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 gradient-primary rounded-lg flex items-center justify-center">
+              <span className="text-white text-lg sm:text-xl font-bold">📖</span>
             </div>
-            <span className={`text-xl md:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+            <span className={`text-lg sm:text-xl md:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
               LibraryBook
             </span>
           </Link>

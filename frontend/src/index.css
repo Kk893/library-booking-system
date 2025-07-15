@@ -10,34 +10,132 @@
 html, body {
   overflow-x: hidden;
   width: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 @layer components {
+  /* BookMyShow-style buttons */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base;
+    @apply bg-bms-red hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 text-sm sm:text-base shadow-lg;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base;
+    @apply bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-medium py-3 px-6 rounded-lg transition-all text-sm sm:text-base;
   }
   
+  /* Responsive cards */
   .card {
-    @apply bg-white rounded-lg shadow-md p-4 sm:p-6;
+    @apply bg-white rounded-xl shadow-lg p-4 sm:p-6 transition-all hover:shadow-xl;
   }
   
+  .card-dark {
+    @apply bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 transition-all hover:shadow-xl;
+  }
+  
+  /* Input fields */
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base;
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bms-red focus:border-transparent text-sm sm:text-base transition-all;
   }
   
+  /* Container classes */
   .mobile-container {
-    @apply px-4 sm:px-6 lg:px-8;
+    @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
   }
   
+  /* Typography */
   .mobile-text {
-    @apply text-sm sm:text-base;
+    @apply text-sm sm:text-base leading-relaxed;
   }
   
   .mobile-heading {
-    @apply text-xl sm:text-2xl lg:text-3xl;
+    @apply text-xl sm:text-2xl lg:text-3xl font-bold;
   }
+  
+  .mobile-subheading {
+    @apply text-lg sm:text-xl lg:text-2xl font-semibold;
+  }
+  
+  /* Grid layouts */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+  }
+  
+  .responsive-grid-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6;
+  }
+  
+  /* BookMyShow-style gradients */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-bms-red to-pink-500;
+  }
+  
+  .gradient-secondary {
+    @apply bg-gradient-to-r from-purple-500 to-blue-500;
+  }
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Horizontal scroll */
+.horizontal-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* BookMyShow-style hover effects */
+.bms-hover {
+  transition: all 0.3s ease;
+}
+
+.bms-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }

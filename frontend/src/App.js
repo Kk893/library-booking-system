@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import BottomNavigation from './components/BottomNavigation';
+import MobileTopBar from './components/MobileTopBar';
 import './styles/macOS.css';
 import Home from './pages/Home';
 import Libraries from './pages/Libraries';
@@ -33,10 +35,11 @@ const AppContent = () => {
   const { isDark } = useTheme();
 
   return (
-    <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <ThemeButton />
+      <MobileTopBar />
       <Navbar />
-      <main className={`${window.location.pathname === '/' ? '' : 'container mx-auto mobile-container py-4 sm:py-8'}`}>
+      <main className={`${window.location.pathname === '/' ? '' : 'mobile-container py-4 sm:py-8'}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/libraries" element={<Libraries />} />
@@ -63,6 +66,7 @@ const AppContent = () => {
           <Route path="/superadmin" element={<SuperAdminDashboard />} />
         </Routes>
       </main>
+      <BottomNavigation />
     </div>
   );
 };
