@@ -182,11 +182,6 @@ const Home = () => {
         {/* Libraries Near You */}
         <div>
           <LibrarySlider libraries={filteredLibraries} title="📖 Libraries Near You" />
-          <div className="px-4 mt-2">
-            <Link to="/libraries" className="text-xs text-red-500 font-medium flex items-center justify-end">
-              See More <span className="ml-1">→</span>
-            </Link>
-          </div>
         </div>
         
         {/* Popular Libraries */}
@@ -195,11 +190,6 @@ const Home = () => {
             libraries={popularLibraries} 
             title="⭐ Popular" 
           />
-          <div className="px-4 mt-2">
-            <Link to="/libraries?filter=popular" className="text-xs text-red-500 font-medium flex items-center justify-end">
-              Explore More <span className="ml-1">→</span>
-            </Link>
-          </div>
         </div>
         
         {/* Recently Added Libraries */}
@@ -208,11 +198,6 @@ const Home = () => {
             libraries={recentLibraries} 
             title="🆕 Recently Added" 
           />
-          <div className="px-4 mt-2">
-            <Link to="/libraries?filter=recent" className="text-xs text-red-500 font-medium flex items-center justify-end">
-              Show More <span className="ml-1">→</span>
-            </Link>
-          </div>
         </div>
         
         {/* Top Rated Libraries */}
@@ -221,11 +206,6 @@ const Home = () => {
             libraries={topRatedLibraries} 
             title="🏆 Top Rated" 
           />
-          <div className="px-4 mt-2">
-            <Link to="/libraries?filter=rated" className="text-xs text-red-500 font-medium flex items-center justify-end">
-              View All <span className="ml-1">→</span>
-            </Link>
-          </div>
         </div>
       </div>
       
