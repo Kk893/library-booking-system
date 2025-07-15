@@ -6,6 +6,7 @@ import { MapPinIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../context/ThemeContext';
 import { getImageUrl, handleImageError } from '../utils/imageUtils';
 import MobileLibraryCard from '../components/MobileLibraryCard';
+import MobileLibraryHeader from '../components/MobileLibraryHeader';
 
 
 const Libraries = () => {
@@ -91,8 +92,16 @@ const Libraries = () => {
 
   return (
     <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Header */}
-      <div className={`shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+      {/* Mobile Header */}
+      <MobileLibraryHeader 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        selectedCity={selectedCity}
+        setSelectedCity={setSelectedCity}
+      />
+      
+      {/* Desktop Header */}
+      <div className={`hidden md:block shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="mobile-container py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -110,13 +119,12 @@ const Libraries = () => {
                 </p>
               )}
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className={`border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      {/* Search and Filters - Desktop Only */}
+      <div className={`hidden md:block border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="mobile-container py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
@@ -265,7 +273,7 @@ const Libraries = () => {
                     </div>
                     <Link
                       to={`/libraries/${library._id}`}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
+                      className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105"
                     >
                       Book Now
                     </Link>
@@ -290,7 +298,7 @@ const Libraries = () => {
 
         {isLoading && (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
             <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Loading libraries...</p>
           </div>
         )}

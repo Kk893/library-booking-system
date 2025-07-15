@@ -6,6 +6,7 @@ import OfferBanner from '../components/OfferBanner';
 import LibrarySlider from '../components/LibrarySlider';
 import MobileHomeHeader from '../components/MobileHomeHeader';
 import MobileQuickActions from '../components/MobileQuickActions';
+import MobileLibraryFilters from '../components/MobileLibraryFilters';
 
 const Home = () => {
   const [allLibraries, setAllLibraries] = useState([]);
@@ -71,7 +72,7 @@ const Home = () => {
       </div>
 
 
-      {/* Search Bar - Hidden on mobile */}
+      {/* Search Bar - Only for desktop */}
       <div className={`shadow-lg hidden md:block ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="mobile-container py-4">
           <div className="flex items-center space-x-4">
@@ -173,6 +174,11 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Mobile Library Filters */}
+      <div className="md:hidden">
+        <MobileLibraryFilters activeFilter={activeFilter} setActiveFilter={handleFilterChange} />
+      </div>
+      
       {/* Mobile Library Slider */}
       <div className="md:hidden">
         <LibrarySlider libraries={filteredLibraries} title="📖 Libraries Near You" />
