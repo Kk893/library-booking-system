@@ -12,7 +12,7 @@ const LibrarySlider = ({ libraries, title = "Libraries Near You" }) => {
           <h2 className={`mobile-subheading ${isDark ? 'text-white' : 'text-gray-800'}`}>
             {title}
           </h2>
-          <Link to="/libraries" className={`text-sm font-medium ${isDark ? 'text-bms-red' : 'text-bms-red'}`}>
+          <Link to="/libraries" className={`text-sm font-medium ${isDark ? 'text-red-500' : 'text-red-500'}`}>
             View All →
           </Link>
         </div>

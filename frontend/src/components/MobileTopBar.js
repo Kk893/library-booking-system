@@ -12,7 +12,7 @@ const MobileTopBar = () => {
         {/* Location and Logo */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
               <span className="text-white text-sm font-bold">📖</span>
             </div>
             <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>

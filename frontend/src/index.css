@@ -16,7 +16,7 @@ html, body {
 @layer components {
   /* BookMyShow-style buttons */
   .btn-primary {
-    @apply bg-bms-red hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 text-sm sm:text-base shadow-lg;
+    @apply bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 text-sm sm:text-base shadow-lg;
   }
   
   .btn-secondary {
@@ -34,7 +34,7 @@ html, body {
   
   /* Input fields */
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-bms-red focus:border-transparent text-sm sm:text-base transition-all;
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm sm:text-base transition-all;
   }
   
   /* Container classes */
@@ -66,7 +66,7 @@ html, body {
   
   /* BookMyShow-style gradients */
   .gradient-primary {
-    @apply bg-gradient-to-r from-bms-red to-pink-500;
+    @apply bg-gradient-to-r from-red-500 to-pink-500;
   }
   
   .gradient-secondary {

@@ -178,7 +178,7 @@ const Home = () => {
                    activeFilter === 'recent' ? 'Recently Added Libraries' :
                    'Top Rated Libraries'}
             </h2>
-            <Link to="/libraries" className={`font-semibold ${isDark ? 'text-bms-red hover:text-red-400' : 'text-bms-red hover:text-red-600'}`}>
+            <Link to="/libraries" className={`font-semibold ${isDark ? 'text-red-500 hover:text-red-400' : 'text-red-500 hover:text-red-600'}`}>
               View All →
             </Link>
           </div>
@@ -209,7 +209,7 @@ const Home = () => {
                     </div>
                     <Link 
                       to={`/libraries/${library._id}`}
-                      className="bg-bms-red hover:bg-red-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all transform hover:scale-105"
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all transform hover:scale-105"
                     >
                       Book Now
                     </Link>

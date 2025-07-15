@@ -49,7 +49,7 @@ const Navbar = () => {
       <div className="mobile-container">
         <div className="flex justify-between items-center py-3 sm:py-4">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 gradient-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
               <span className="text-white text-lg sm:text-xl font-bold">📖</span>
             </div>
             <span className={`text-lg sm:text-xl md:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
@@ -142,7 +142,7 @@ const Navbar = () => {
                 </Link>
                 <Link 
                   to="/register" 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full font-medium transition-all transform hover:scale-105"
+                  className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 py-2 rounded-full font-medium transition-all transform hover:scale-105"
                 >
                   Register
                 </Link>
@@ -256,7 +256,7 @@ const Navbar = () => {
                     </Link>
                     <Link 
                       to="/register" 
-                      className="block mx-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-center font-medium"
+                      className="block mx-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-full text-center font-medium"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Register
