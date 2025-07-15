@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LibraryBook</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="google_maps_key">YOUR_MAPS_API_KEY</string>
+    
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="name">Full Name</string>
+    <string name="phone">Phone Number</string>
+    <string name="confirm_password">Confirm Password</string>
+    
+    <!-- Home -->
+    <string name="discover_libraries">Discover Libraries</string>
+    <string name="find_perfect_reading_space">Find your perfect reading space</string>
+    <string name="explore_libraries">Explore Libraries</string>
+    <string name="libraries_near_you">📖 Libraries Near You</string>
+    <string name="popular_libraries">⭐ Popular</string>
+    <string name="recently_added">🆕 Recently Added</string>
+    <string name="top_rated">🏆 Top Rated</string>
+    <string name="book_now">Book Now</string>
+    <string name="view_all">View All</string>
+    
+    <!-- Quick Actions -->
+    <string name="book_seat">Book Seat</string>
+    <string name="find_books">Find Books</string>
+    <string name="my_bookings">My Bookings</string>
+    <string name="favorites">Favorites</string>
+    
+    <!-- Bottom Navigation -->
+    <string name="home">Home</string>
+    <string name="libraries">Libraries</string>
+    <string name="bookings">Bookings</string>
+    <string name="profile">Profile</string>
+    
+    <!-- Content Descriptions -->
+    <string name="app_logo">App Logo</string>
+    <string name="banner_image">Banner Image</string>
+    <string name="library_image">Library Image</string>
+    
+    <!-- Admin -->
+    <string name="admin_dashboard">Dashboard</string>
+    <string name="manage_books">Manage Books</string>
+    <string name="manage_bookings">Manage Bookings</string>
+    <string name="manage_libraries">Manage Libraries</string>
+    <string name="manage_admins">Manage Admins</string>
+    <string name="manage_offers">Manage Offers</string>
+    <string name="settings">Settings</string>
+    <string name="logout">Logout</string>
+</resources>
