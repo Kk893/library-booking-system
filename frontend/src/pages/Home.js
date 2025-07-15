@@ -4,6 +4,8 @@ import { useTheme } from '../context/ThemeContext';
 import axios from '../utils/axios';
 import OfferBanner from '../components/OfferBanner';
 import LibrarySlider from '../components/LibrarySlider';
+import MobileHomeHeader from '../components/MobileHomeHeader';
+import MobileQuickActions from '../components/MobileQuickActions';
 
 const Home = () => {
   const [allLibraries, setAllLibraries] = useState([]);
@@ -56,7 +58,13 @@ const Home = () => {
 
 
   return (
-    <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Mobile Home Header */}
+      <MobileHomeHeader />
+      
+      {/* Mobile Quick Actions */}
+      <MobileQuickActions />
+      
       {/* Mobile Offer Banner */}
       <div className="md:hidden">
         <OfferBanner />

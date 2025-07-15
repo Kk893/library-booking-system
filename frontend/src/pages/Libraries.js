@@ -5,6 +5,7 @@ import axios from '../utils/axios';
 import { MapPinIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '../context/ThemeContext';
 import { getImageUrl, handleImageError } from '../utils/imageUtils';
+import MobileLibraryCard from '../components/MobileLibraryCard';
 
 
 const Libraries = () => {
@@ -89,22 +90,22 @@ const Libraries = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-all duration-300 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className={`shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
+        <div className="mobile-container py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              <h1 className={`mobile-heading ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 🏢 Discover Libraries
               </h1>
               {userLocation && nearbyLibraries && nearbyLibraries.length > 0 && !searchTerm && !selectedCity && (
-                <p className={`text-sm mt-2 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                <p className={`text-xs sm:text-sm ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                   📍 Showing {nearbyLibraries.length} libraries near your current location
                 </p>
               )}
               {!userLocation && (
-                <p className={`text-sm mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`text-xs sm:text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                   📍 Enable location to see nearby libraries
                 </p>
               )}
@@ -116,28 +117,28 @@ const Libraries = () => {
 
       {/* Search and Filters */}
       <div className={`border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="mobile-container py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder="Search libraries, areas, or facilities..."
+                placeholder="Search libraries, areas..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full px-4 py-3 pl-12 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-2 sm:py-3 pl-10 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-500 ${
                   isDark 
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                     : 'bg-white border-gray-300 text-gray-900'
                 }`}
               />
-              <svg className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className={`px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`px-3 py-2 sm:py-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-500 ${
                 isDark 
                   ? 'bg-gray-700 border-gray-600 text-white' 
                   : 'bg-white border-gray-300 text-gray-900'
@@ -154,11 +155,16 @@ const Libraries = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="mobile-container py-4 sm:py-8">
+        {/* Mobile Libraries List */}
+        <div className="md:hidden">
+          {displayLibraries?.map((library, index) => (
+            <MobileLibraryCard key={library._id} library={library} index={index} />
+          ))}
+        </div>
 
-
-        {/* Libraries Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Desktop Libraries Grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayLibraries?.map((library, index) => (
             <div
               key={library._id}
