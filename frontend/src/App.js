@@ -37,7 +37,9 @@ const AppContent = () => {
   return (
     <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <ThemeButton />
-      <MobileTopBar />
+      <div className="hidden md:block">
+        <MobileTopBar />
+      </div>
       <Navbar />
       <main className={`${window.location.pathname === '/' ? '' : 'mobile-container py-4 sm:py-8'}`}>
         <Routes>
