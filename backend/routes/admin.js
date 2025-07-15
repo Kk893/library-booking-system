@@ -56,7 +56,10 @@ router.get('/library/dashboard', auth, adminAuth, async (req, res) => {
 // Get books
 router.get('/books', auth, adminAuth, async (req, res) => {
   try {
-    const books = await Book.find({ isActive: true });
+    const books = await Book.find({ 
+      isActive: true,
+      libraryId: req.user.libraryId 
+    });
     res.json(books);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -64,12 +67,13 @@ router.get('/books', auth, adminAuth, async (req, res) => {
 });
 
 // Add book
-router.post('/books', ...adminAuth, logPrivilegeAction('create_book'), async (req, res) => {
+router.post('/books', auth, adminAuth, logPrivilegeAction('create_book'), async (req, res) => {
   try {
     const book = new Book({
       ...req.body,
       createdBy: req.user._id,
-      lastModifiedBy: req.user._id
+      lastModifiedBy: req.user._id,
+      libraryId: req.user.libraryId
     });
     await book.save();
     res.status(201).json(book);
@@ -342,10 +346,17 @@ router.get('/libraries', auth, superAdminAuth, async (req, res) => {
 // Get library users
 router.get('/library-users', auth, adminAuth, async (req, res) => {
   try {
-    const users = await User.find({ role: 'user' })
+    const bookings = await Booking.find({ libraryId: req.user.libraryId })
+      .populate('userId', 'name email phone')
+      .select('userId')
+      .distinct('userId');
+    
+    const users = await User.find({ 
+      _id: { $in: bookings },
+      role: 'user' 
+    })
       .select('-password')
-      .sort({ createdAt: -1 })
-      .limit(50);
+      .sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -386,8 +397,10 @@ router.put('/my-library', auth, adminAuth, async (req, res) => {
 router.get('/admin-offers', auth, adminAuth, async (req, res) => {
   try {
     const offers = await Offer.find({ 
-      createdBy: req.user._id,
-      createdByRole: 'admin'
+      $or: [
+        { createdBy: req.user._id, createdByRole: 'admin' },
+        { libraryId: req.user.libraryId }
+      ]
     }).sort({ createdAt: -1 });
     res.json(offers);
   } catch (error) {
@@ -400,7 +413,8 @@ router.post('/admin-offers', auth, adminAuth, async (req, res) => {
     const offer = new Offer({
       ...req.body,
       createdBy: req.user._id,
-      createdByRole: 'admin'
+      createdByRole: 'admin',
+      libraryId: req.user.libraryId
     });
     await offer.save();
     res.status(201).json(offer);
@@ -614,6 +628,20 @@ router.delete('/offers/:id', auth, adminAuth, async (req, res) => {
       return res.status(404).json({ message: 'Offer not found' });
     }
     res.json({ message: 'Offer deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get bookings for admin
+router.get('/bookings', auth, adminAuth, async (req, res) => {
+  try {
+    const bookings = await Booking.find({ libraryId: req.user.libraryId })
+      .populate('userId', 'name email phone')
+      .populate('bookId', 'title author')
+      .sort({ createdAt: -1 })
+      .limit(100);
+    res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

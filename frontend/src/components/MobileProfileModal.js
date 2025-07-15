@@ -67,10 +67,12 @@ const MobileProfileModal = ({ isOpen, onClose }) => {
                 <span className={isDark ? 'text-white' : 'text-gray-800'}>Notifications</span>
               </Link>
               
-              <Link to="/qr-scanner" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
-                <span className="text-xl">📱</span>
-                <span className={isDark ? 'text-white' : 'text-gray-800'}>QR Scanner</span>
-              </Link>
+              {(user.role === 'admin' || user.role === 'superadmin') && (
+                <Link to="/qr-scanner" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
+                  <span className="text-xl">📱</span>
+                  <span className={isDark ? 'text-white' : 'text-gray-800'}>QR Scanner</span>
+                </Link>
+              )}
               
               <Link to="/profile" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
                 <span className="text-xl">⚙️</span>
@@ -79,21 +81,21 @@ const MobileProfileModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Admin Links */}
-            {user.role === 'admin' && (
-              <div className="border-t pt-4">
-                <Link to="/admin" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
-                  <span className="text-xl">🔑</span>
-                  <span className={isDark ? 'text-white' : 'text-gray-800'}>Admin Panel</span>
-                </Link>
-              </div>
-            )}
-
-            {user.role === 'superadmin' && (
-              <div className="border-t pt-4">
-                <Link to="/superadmin" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
-                  <span className="text-xl">👑</span>
-                  <span className={isDark ? 'text-white' : 'text-gray-800'}>Super Admin</span>
-                </Link>
+            {(user.role === 'admin' || user.role === 'superadmin') && (
+              <div className="border-t pt-4 space-y-2">
+                {user.role === 'admin' && (
+                  <Link to="/admin" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
+                    <span className="text-xl">🔑</span>
+                    <span className={isDark ? 'text-white' : 'text-gray-800'}>Admin Panel</span>
+                  </Link>
+                )}
+                
+                {user.role === 'superadmin' && (
+                  <Link to="/superadmin" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
+                    <span className="text-xl">👑</span>
+                    <span className={isDark ? 'text-white' : 'text-gray-800'}>Super Admin</span>
+                  </Link>
+                )}
               </div>
             )}
 
@@ -139,6 +141,11 @@ const MobileProfileModal = ({ isOpen, onClose }) => {
               <Link to="/events" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
                 <span className="text-xl">🎆</span>
                 <span className={isDark ? 'text-white' : 'text-gray-800'}>Events</span>
+              </Link>
+              
+              <Link to="/libraries" onClick={onClose} className={`flex items-center space-x-3 p-3 rounded-lg ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
+                <span className="text-xl">🏢</span>
+                <span className={isDark ? 'text-white' : 'text-gray-800'}>Browse Libraries</span>
               </Link>
             </div>
           </div>
