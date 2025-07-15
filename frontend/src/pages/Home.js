@@ -4,7 +4,9 @@ import { useTheme } from '../context/ThemeContext';
 import axios from '../utils/axios';
 import OfferBanner from '../components/OfferBanner';
 import LibrarySlider from '../components/LibrarySlider';
+import MobileHomeHeader from '../components/MobileHomeHeader';
 import MobileQuickActions from '../components/MobileQuickActions';
+import MobileLibraryFilters from '../components/MobileLibraryFilters';
 
 const Home = () => {
   const [allLibraries, setAllLibraries] = useState([]);
@@ -67,13 +69,17 @@ const Home = () => {
 
   return (
     <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Mobile Home Header */}
+      <MobileHomeHeader />
+      
+      {/* Mobile Quick Actions */}
+      <MobileQuickActions />
+      
       {/* Mobile Offer Banner */}
       <div className="md:hidden">
         <OfferBanner />
       </div>
-      
-      {/* Mobile Quick Actions */}
-      <MobileQuickActions />
+
 
       {/* Search Bar - Only for desktop */}
       <div className={`shadow-lg hidden md:block ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
@@ -135,7 +141,7 @@ const Home = () => {
           <div className="flex space-x-8 py-4">
             <button 
               onClick={() => handleFilterChange('all')}
-              className={`pb-2 font-semibold transition-colors whitespace-nowrap text-sm sm:text-base ${
+              className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'all'
                   ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
                   : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
@@ -145,7 +151,7 @@ const Home = () => {
             </button>
             <button 
               onClick={() => handleFilterChange('popular')}
-              className={`pb-2 font-semibold transition-colors whitespace-nowrap text-sm sm:text-base ${
+              className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'popular'
                   ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
                   : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
@@ -155,7 +161,7 @@ const Home = () => {
             </button>
             <button 
               onClick={() => handleFilterChange('recent')}
-              className={`pb-2 font-semibold transition-colors whitespace-nowrap text-sm sm:text-base ${
+              className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'recent'
                   ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
                   : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
@@ -165,7 +171,7 @@ const Home = () => {
             </button>
             <button 
               onClick={() => handleFilterChange('rated')}
-              className={`pb-2 font-semibold transition-colors whitespace-nowrap text-sm sm:text-base ${
+              className={`pb-2 font-semibold transition-colors ${
                 activeFilter === 'rated'
                   ? `border-b-2 border-red-500 ${isDark ? 'text-red-500' : 'text-red-500'}`
                   : `${isDark ? 'text-gray-300 hover:text-red-500' : 'text-gray-600 hover:text-red-500'}`
@@ -177,6 +183,11 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Mobile Library Filters */}
+      <div className="md:hidden">
+        <MobileLibraryFilters activeFilter={activeFilter} setActiveFilter={handleFilterChange} />
+      </div>
+      
       {/* Mobile Library Sections */}
       <div className="md:hidden space-y-4 pb-6">
         {/* Libraries Near You */}
