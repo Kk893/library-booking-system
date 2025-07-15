@@ -69,7 +69,7 @@ const BottomNavigation = () => {
               <span className="text-xs font-medium">{item.label}</span>
             </Link>
           );
-        })
+        })}
       </div>
       
       <MobileProfileModal 
