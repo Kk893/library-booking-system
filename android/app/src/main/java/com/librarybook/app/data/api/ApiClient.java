@@ -1,7 +1,5 @@
 package com.librarybook.app.data.api;
 
-import com.librarybook.app.BuildConfig;
-
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -18,11 +16,9 @@ public class ApiClient {
             OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
             
             // Add logging interceptor in debug mode
-            if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-                logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-                httpClient.addInterceptor(logging);
-            }
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+            httpClient.addInterceptor(logging);
             
             // Set timeouts
             httpClient.connectTimeout(30, TimeUnit.SECONDS);
