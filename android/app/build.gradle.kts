@@ -42,6 +42,9 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     
+    // GridLayout support
+    implementation("androidx.gridlayout:gridlayout:1.0.0")
+ 
     // Retrofit for API calls
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)

@@ -62,22 +62,89 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_date_time_info" />
 
-    <!-- Seat Layout -->
-    <androidx.gridlayout.widget.GridLayout
+    <!-- Seat Layout - Using TableLayout instead of GridLayout -->
+    <TableLayout
         android:id="@+id/seat_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
-        app:columnCount="8"
+        android:stretchColumns="*"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_screen"
-        app:rowCount="6">
+        app:layout_constraintTop_toBottomOf="@+id/tv_screen">
 
         <!-- Seats will be added dynamically -->
-    </androidx.gridlayout.widget.GridLayout>
+        <TableRow android:gravity="center">
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_available"
+                android:gravity="center"
+                android:text="A1"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_available"
+                android:gravity="center"
+                android:text="A2"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_booked"
+                android:gravity="center"
+                android:text="A3"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_available"
+                android:gravity="center"
+                android:text="A4"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+        </TableRow>
+        <TableRow android:gravity="center">
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_available"
+                android:gravity="center"
+                android:text="B1"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_pending"
+                android:gravity="center"
+                android:text="B2"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_pending"
+                android:gravity="center"
+                android:text="B3"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@color/status_available"
+                android:gravity="center"
+                android:text="B4"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+        </TableRow>
+    </TableLayout>
 
     <!-- Seat Legend -->
     <LinearLayout
@@ -192,7 +259,7 @@
                     android:textColor="@color/text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    tools:text="A1, A2" />
+                    tools:text="B2, B3" />
             </LinearLayout>
 
             <LinearLayout
