@@ -17,6 +17,8 @@ import com.librarybook.app.R;
 import com.librarybook.app.data.model.User;
 import com.librarybook.app.util.PreferenceManager;
 
+import java.util.Objects;
+
 public class AdminDashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawerLayout;
@@ -98,7 +100,7 @@ public class AdminDashboardActivity extends AppCompatActivity implements Navigat
                     .commit();
             
             if (!title.isEmpty()) {
-                getSupportActionBar().setTitle(title);
+                Objects.requireNonNull(getSupportActionBar()).setTitle(title);
             }
         }
 

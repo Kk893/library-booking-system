@@ -16,6 +16,7 @@ import com.librarybook.app.data.api.ApiService;
 import com.librarybook.app.util.PreferenceManager;
 
 import java.util.Map;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -54,20 +55,20 @@ public class AdminHomeFragment extends Fragment {
     private void fetchDashboardData() {
         apiService.getAdminDashboard().enqueue(new Callback<Map<String, Object>>() {
             @Override
-            public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
+            public void onResponse(@NonNull Call<Map<String, Object>> call, @NonNull Response<Map<String, Object>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Map<String, Object> dashboardData = response.body();
                     
                     // Update UI with dashboard data
-                    tvTotalBookings.setText(String.valueOf(dashboardData.get("totalBookings")));
-                    tvTotalRevenue.setText("₹" + String.valueOf(dashboardData.get("totalRevenue")));
-                    tvTotalBooks.setText(String.valueOf(dashboardData.get("totalBooks")));
-                    tvTotalUsers.setText(String.valueOf(dashboardData.get("totalUsers")));
+                    tvTotalBookings.setText(Objects.toString(dashboardData.get("totalBookings"), "0"));
+                    tvTotalRevenue.setText("₹" + Objects.toString(dashboardData.get("totalRevenue"), "0"));
+                    tvTotalBooks.setText(Objects.toString(dashboardData.get("totalBooks"), "0"));
+                    tvTotalUsers.setText(Objects.toString(dashboardData.get("totalUsers"), "0"));
                 }
             }
 
             @Override
-            public void onFailure(Call<Map<String, Object>> call, Throwable t) {
+            public void onFailure(@NonNull Call<Map<String, Object>> call, @NonNull Throwable t) {
                 // Handle error
             }
         });
