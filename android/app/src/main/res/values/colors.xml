@@ -4,7 +4,7 @@
     <color name="primary">#E53935</color>
     <color name="primary_dark">#C62828</color>
     <color name="primary_light">#FFCDD2</color>
-    <color name="accent">#7C4DFF</color>
+    <color name="accent">#FF4081</color>
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#757575</color>
     <color name="icons">#FFFFFF</color>
@@ -21,8 +21,4 @@
     <color name="status_available">#4CAF50</color>
     <color name="status_booked">#F44336</color>
     <color name="status_pending">#FFC107</color>
-    
-    <!-- Glassmorphism colors -->
-    <color name="glass_background">#CCFFFFFF</color>
-    <color name="glass_border">#33FFFFFF</color>
 </resources>
