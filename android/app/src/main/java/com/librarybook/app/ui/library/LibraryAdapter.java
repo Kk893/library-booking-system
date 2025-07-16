@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -44,6 +45,23 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryV
         String area = String.valueOf(library.get("area"));
         String city = String.valueOf(library.get("city"));
         holder.tvLibraryLocation.setText(String.format("%s, %s", area, city));
+        
+        // Set rating if available
+        if (library.containsKey("rating")) {
+            double rating = Double.parseDouble(String.valueOf(library.get("rating")));
+            holder.ratingBar.setRating((float) rating);
+            
+            // Set rating text with count if available
+            if (library.containsKey("ratingCount")) {
+                int ratingCount = Integer.parseInt(String.valueOf(library.get("ratingCount")));
+                holder.tvRating.setText(String.format("%.1f (%d)", rating, ratingCount));
+            } else {
+                holder.tvRating.setText(String.format("%.1f", rating));
+            }
+        } else {
+            holder.ratingBar.setRating(0);
+            holder.tvRating.setText("New");
+        }
         
         // Load library image if available
         if (library.containsKey("images") && library.get("images") instanceof List) {
@@ -84,11 +102,17 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryV
         this.libraries = newLibraries;
         notifyDataSetChanged();
     }
+    
+    public List<Map<String, Object>> getLibraries() {
+        return libraries;
+    }
 
     static class LibraryViewHolder extends RecyclerView.ViewHolder {
         ImageView ivLibrary;
         TextView tvLibraryName;
         TextView tvLibraryLocation;
+        RatingBar ratingBar;
+        TextView tvRating;
         Button btnBookNow;
 
         LibraryViewHolder(@NonNull View itemView) {
@@ -96,6 +120,8 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryV
             ivLibrary = itemView.findViewById(R.id.iv_library);
             tvLibraryName = itemView.findViewById(R.id.tv_library_name);
             tvLibraryLocation = itemView.findViewById(R.id.tv_library_location);
+            ratingBar = itemView.findViewById(R.id.rating_bar);
+            tvRating = itemView.findViewById(R.id.tv_rating);
             btnBookNow = itemView.findViewById(R.id.btn_book_now);
         }
     }

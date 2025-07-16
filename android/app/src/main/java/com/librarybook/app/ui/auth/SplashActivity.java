@@ -24,25 +24,13 @@ public class SplashActivity extends AppCompatActivity {
 
         preferenceManager = new PreferenceManager(this);
 
-        new Handler(Looper.getMainLooper()).postDelayed(this::checkUserLoginStatus, SPLASH_DELAY);
+        new Handler(Looper.getMainLooper()).postDelayed(this::navigateToNextScreen, SPLASH_DELAY);
     }
 
-    private void checkUserLoginStatus() {
-        if (preferenceManager.isLoggedIn()) {
-            // Check user role
-            if (preferenceManager.getUserData() != null && 
-                    ("admin".equals(preferenceManager.getUserData().getRole()) || 
-                     "superadmin".equals(preferenceManager.getUserData().getRole()))) {
-                // Navigate to admin dashboard
-                startActivity(new Intent(SplashActivity.this, AdminDashboardActivity.class));
-            } else {
-                // Navigate to main activity
-                startActivity(new Intent(SplashActivity.this, MainActivity.class));
-            }
-        } else {
-            // Navigate to login
-            startActivity(new Intent(SplashActivity.this, LoginActivity.class));
-        }
+    private void navigateToNextScreen() {
+        // Always go to main activity first, just like the web app
+        Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+        startActivity(intent);
         finish();
     }
 }

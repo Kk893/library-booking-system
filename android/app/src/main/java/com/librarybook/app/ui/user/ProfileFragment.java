@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.librarybook.app.R;
 import com.librarybook.app.databinding.FragmentProfileBinding;
 import com.librarybook.app.ui.auth.LoginActivity;
 import com.librarybook.app.util.PreferenceManager;
@@ -32,6 +34,18 @@ public class ProfileFragment extends Fragment {
         
         preferenceManager = new PreferenceManager(requireContext());
         
+        // Check if user is logged in
+        if (!preferenceManager.isLoggedIn()) {
+            // This should not happen as MainActivity should redirect to login
+            // But just in case, redirect to login
+            Intent intent = new Intent(requireContext(), LoginActivity.class);
+            startActivity(intent);
+            if (getActivity() != null) {
+                getActivity().findViewById(R.id.nav_home).performClick();
+            }
+            return;
+        }
+        
         setupUserInfo();
         setupListeners();
     }
@@ -45,11 +59,26 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupListeners() {
+        binding.tvEditProfile.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Edit Profile coming soon!", Toast.LENGTH_SHORT).show();
+        });
+        
+        binding.tvChangePassword.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Change Password coming soon!", Toast.LENGTH_SHORT).show();
+        });
+        
+        binding.tvSettings.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Settings coming soon!", Toast.LENGTH_SHORT).show();
+        });
+        
         binding.btnLogout.setOnClickListener(v -> {
             preferenceManager.clearUserData();
-            Intent intent = new Intent(requireContext(), LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+            Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
+            
+            // Go back to home tab
+            if (getActivity() != null) {
+                getActivity().findViewById(R.id.nav_home).performClick();
+            }
         });
     }
 
