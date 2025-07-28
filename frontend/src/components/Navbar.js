@@ -236,8 +236,7 @@ const Navbar = () => {
                     </div>
                     <button
                       onClick={() => {
-                        logout();
-                        navigate('/');
+                        logout(); // This will now automatically redirect to home page
                         setIsMobileMenuOpen(false);
                       }}
                       className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"

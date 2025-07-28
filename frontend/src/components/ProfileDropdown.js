@@ -30,7 +30,7 @@ const ProfileDropdown = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    logout(); // This will now automatically redirect to home page
     setIsOpen(false);
   };
 

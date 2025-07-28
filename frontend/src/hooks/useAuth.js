@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../utils/axios';
 
 // Set base URL for axios
@@ -18,6 +19,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -102,6 +104,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    navigate('/'); // Redirect to home page after logout
   };
 
   const updateUser = (updatedUser) => {

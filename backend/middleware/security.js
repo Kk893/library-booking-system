@@ -3,18 +3,20 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const User = require('../models/User');
 
-// Security headers
+// Legacy security headers (for backward compatibility)
 const securityHeaders = helmet({
   contentSecurityPolicy: false, // Disable CSP for now to fix images
   hsts: false // Disable HSTS for localhost
 });
 
-// Rate limiting
+// Legacy rate limiting (for backward compatibility)
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 200, // increased from 100 to 200
   skipSuccessfulRequests: true,
-  message: { error: 'Too many requests, please try again later' }
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 const authLimiter = rateLimit({
@@ -25,7 +27,9 @@ const authLimiter = rateLimit({
     // Use combination of IP and email for more granular limiting
     return `${req.ip}-${req.body.email || 'unknown'}`;
   },
-  message: { error: 'Too many login attempts, please try again later' }
+  message: { error: 'Too many login attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 // Role-based access control
@@ -83,14 +87,18 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-// Input sanitization
+// Legacy input sanitization (for backward compatibility)
 const sanitizeInput = (req, res, next) => {
   const sanitize = (obj) => {
     for (let key in obj) {
       if (typeof obj[key] === 'string') {
+        // Basic XSS protection
         obj[key] = obj[key].replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
         obj[key] = obj[key].replace(/javascript:/gi, '');
         obj[key] = obj[key].replace(/on\w+\s*=/gi, '');
+        
+        // Basic SQL injection protection
+        obj[key] = obj[key].replace(/('|(\\')|(;)|(\\;)|(\|)|(\*)|(%)|(<)|(>)|(\{)|(\})|(\[)|(\]))/g, '');
       } else if (typeof obj[key] === 'object' && obj[key] !== null) {
         sanitize(obj[key]);
       }
