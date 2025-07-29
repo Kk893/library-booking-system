@@ -4,6 +4,80 @@ const Book = require('../models/Book');
 
 const router = express.Router();
 
+// Get nearby libraries (must be before /:id route)
+router.get('/nearby', async (req, res) => {
+  try {
+    const { lat, lng, radius = 25, city } = req.query;
+    
+    let query = { isActive: { $ne: false } };
+    
+    // If city is provided, filter by city
+    if (city) {
+      query.city = { $regex: city, $options: 'i' };
+    }
+    
+    const Rating = require('../models/Rating');
+    const libraries = await Library.find(query)
+      .populate('adminId', 'name email')
+      .sort({ createdAt: -1 });
+    
+    // Calculate distance if coordinates provided
+    let librariesWithDistance = libraries;
+    if (lat && lng) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+      
+      librariesWithDistance = libraries.map(lib => {
+        let distance = 0;
+        if (lib.coordinates && lib.coordinates.lat && lib.coordinates.lng) {
+          // Calculate distance using Haversine formula
+          const R = 6371; // Earth's radius in km
+          const dLat = (lib.coordinates.lat - userLat) * Math.PI / 180;
+          const dLng = (lib.coordinates.lng - userLng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(userLat * Math.PI / 180) * Math.cos(lib.coordinates.lat * Math.PI / 180) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          distance = R * c;
+        } else {
+          // Fallback: random distance for demo
+          distance = Math.random() * 20 + 1;
+        }
+        
+        return {
+          ...lib.toObject(),
+          distance: Math.round(distance * 10) / 10
+        };
+      });
+      
+      // Filter by radius and sort by distance
+      librariesWithDistance = librariesWithDistance
+        .filter(lib => lib.distance <= radius)
+        .sort((a, b) => a.distance - b.distance);
+    }
+    
+    // Add rating data
+    const librariesWithRatings = await Promise.all(
+      librariesWithDistance.map(async (library) => {
+        const ratings = await Rating.find({ libraryId: library._id, isActive: true });
+        const avgRating = ratings.length > 0 
+          ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+          : 0;
+        
+        return {
+          ...library,
+          averageRating: Math.round(avgRating * 10) / 10,
+          totalRatings: ratings.length
+        };
+      })
+    );
+    
+    res.json(librariesWithRatings);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get all libraries
 router.get('/', async (req, res) => {
   try {
@@ -19,7 +93,7 @@ router.get('/', async (req, res) => {
     }
     
     if (city) {
-      query.city = city;
+      query.city = { $regex: city, $options: 'i' };
     }
     
     const Rating = require('../models/Rating');
@@ -78,30 +152,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Get nearby libraries
-router.get('/nearby', async (req, res) => {
-  try {
-    const { lat, lng, radius = 25 } = req.query;
-    
-    if (!lat || !lng) {
-      return res.status(400).json({ message: 'Latitude and longitude required' });
-    }
-    
-    // Simple distance calculation (in a real app, use MongoDB geospatial queries)
-    const libraries = await Library.find({ isActive: { $ne: false } })
-      .populate('adminId', 'name email');
-    
-    // Add mock distance for demo
-    const librariesWithDistance = libraries.map(lib => ({
-      ...lib.toObject(),
-      distance: (Math.random() * 20 + 1).toFixed(1)
-    }));
-    
-    res.json(librariesWithDistance);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+
 
 // Update library images
 router.put('/:id/images', async (req, res) => {

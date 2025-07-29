@@ -11,14 +11,47 @@ import MobileLibraryFilters from '../components/MobileLibraryFilters';
 const Home = () => {
   const [allLibraries, setAllLibraries] = useState([]);
   const [filteredLibraries, setFilteredLibraries] = useState([]);
+  const [nearbyLibraries, setNearbyLibraries] = useState([]);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [userLocation, setUserLocation] = useState(null);
+  const [selectedCity, setSelectedCity] = useState('Mumbai');
   const { isDark } = useTheme();
 
   useEffect(() => {
-    // Get all libraries
+    // Get user location
+    const getUserLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+          },
+          (error) => {
+            console.log('Location access denied, using city filter');
+          }
+        );
+      }
+    };
+
+    getUserLocation();
+  }, []);
+
+  useEffect(() => {
+    // Fetch libraries based on location or city
     const fetchLibraries = async () => {
       try {
-        const response = await axios.get('/api/libraries');
+        let response;
+        if (userLocation) {
+          // Use nearby API with user location
+          response = await axios.get(`/api/libraries/nearby?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=25&city=${selectedCity}`);
+          setNearbyLibraries(response.data || []);
+        } else {
+          // Use city filter
+          response = await axios.get(`/api/libraries?city=${selectedCity}`);
+        }
+        
         const libraries = response.data || [];
         setAllLibraries(libraries);
         setFilteredLibraries(libraries);
@@ -28,7 +61,7 @@ const Home = () => {
     };
 
     fetchLibraries();
-  }, []);
+  }, [userLocation, selectedCity]);
 
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
@@ -99,16 +132,20 @@ const Home = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <select className={`input-field w-auto ${
-              isDark 
-                ? 'bg-gray-700 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-900'
-            }`}>
-              <option>Mumbai</option>
-              <option>Delhi</option>
-              <option>Bangalore</option>
-              <option>Chennai</option>
-              <option>Pune</option>
+            <select 
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className={`input-field w-auto ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
+            >
+              <option value="Mumbai">Mumbai</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Bangalore">Bangalore</option>
+              <option value="Chennai">Chennai</option>
+              <option value="Pune">Pune</option>
             </select>
           </div>
         </div>
@@ -192,7 +229,10 @@ const Home = () => {
       <div className="md:hidden space-y-4 pb-6">
         {/* Libraries Near You */}
         <div>
-          <LibrarySlider libraries={filteredLibraries} title="📖 Libraries Near You" />
+          <LibrarySlider 
+            libraries={userLocation ? nearbyLibraries : filteredLibraries} 
+            title={userLocation ? "📍 Libraries Near You" : `📖 Libraries in ${selectedCity}`} 
+          />
         </div>
         
         {/* Popular Libraries */}
