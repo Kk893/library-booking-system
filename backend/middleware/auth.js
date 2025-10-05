@@ -49,7 +49,7 @@ const auth = async (req, res, next) => {
 };
 
 // Legacy RBAC middleware for backward compatibility
-const adminAuth = [auth, requireRole('admin'), logPrivilegeAction('admin_access')];
+const adminAuth = [auth, requireRole(['admin', 'superadmin']), logPrivilegeAction('admin_access')];
 const superAdminAuth = [auth, requireRole('superadmin'), logPrivilegeAction('superadmin_access')];
 const userAuth = [auth, requireRole('user')];
 

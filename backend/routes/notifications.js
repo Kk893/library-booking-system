@@ -1,14 +1,39 @@
 const express = require('express');
-const { verifyToken, requireRole } = require('../middleware/security');
 const NotificationService = require('../services/notificationService');
 const router = express.Router();
 
+// Auth middleware for notifications
+const authMiddleware = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const User = require('../models/User');
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
 // Get user notifications
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const notifications = await NotificationService.getUserNotifications(
-      req.user.id, 
+      req.user._id, 
       parseInt(page), 
       parseInt(limit)
     );
@@ -20,9 +45,9 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // Get unread count
-router.get('/unread-count', verifyToken, async (req, res) => {
+router.get('/unread-count', authMiddleware, async (req, res) => {
   try {
-    const count = await NotificationService.getUnreadCount(req.user.id);
+    const count = await NotificationService.getUnreadCount(req.user._id);
     res.json({ count });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -30,18 +55,36 @@ router.get('/unread-count', verifyToken, async (req, res) => {
 });
 
 // Mark notification as read
-router.put('/:id/read', verifyToken, async (req, res) => {
+router.put('/:id/read', authMiddleware, async (req, res) => {
   try {
-    await NotificationService.markAsRead(req.params.id, req.user.id);
+    await NotificationService.markAsRead(req.params.id, req.user._id);
     res.json({ message: 'Notification marked as read' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Send admin notification (admin/superadmin only)
-router.post('/admin', verifyToken, requireRole(['admin', 'superadmin']), async (req, res) => {
+// Delete notification
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
+    const Notification = require('../models/Notification');
+    await Notification.findOneAndDelete({ 
+      _id: req.params.id, 
+      'recipients.userId': req.user._id 
+    });
+    res.json({ message: 'Notification deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Send admin notification (admin/superadmin only)
+router.post('/admin', authMiddleware, async (req, res) => {
+  try {
+    if (!['admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
     const { message, priority = 'medium' } = req.body;
     
     if (!message) {
@@ -51,7 +94,7 @@ router.post('/admin', verifyToken, requireRole(['admin', 'superadmin']), async (
     const notification = await NotificationService.sendAdminNotification(
       message, 
       priority, 
-      req.user.id
+      req.user._id
     );
     
     res.json({ message: 'Admin notification sent', notification });
@@ -61,8 +104,12 @@ router.post('/admin', verifyToken, requireRole(['admin', 'superadmin']), async (
 });
 
 // Send super admin notification (superadmin only)
-router.post('/superadmin', verifyToken, requireRole('superadmin'), async (req, res) => {
+router.post('/superadmin', authMiddleware, async (req, res) => {
   try {
+    if (req.user.role !== 'superadmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
     const { message, priority = 'high' } = req.body;
     
     if (!message) {
@@ -72,7 +119,7 @@ router.post('/superadmin', verifyToken, requireRole('superadmin'), async (req, r
     const notification = await NotificationService.sendSuperAdminNotification(
       message, 
       priority, 
-      req.user.id
+      req.user._id
     );
     
     res.json({ message: 'Super admin notification sent', notification });
@@ -82,8 +129,12 @@ router.post('/superadmin', verifyToken, requireRole('superadmin'), async (req, r
 });
 
 // Send notification to specific users (admin/superadmin only)
-router.post('/send', verifyToken, requireRole(['admin', 'superadmin']), async (req, res) => {
+router.post('/send', authMiddleware, async (req, res) => {
   try {
+    if (!['admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
     const { userIds, title, message, type = 'system', priority = 'medium' } = req.body;
     
     if (!userIds || !title || !message) {
@@ -95,7 +146,7 @@ router.post('/send', verifyToken, requireRole(['admin', 'superadmin']), async (r
       message,
       type,
       priority,
-      createdBy: req.user.id
+      createdBy: req.user._id
     });
     
     res.json({ message: 'Notification sent', notification });

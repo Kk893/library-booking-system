@@ -130,6 +130,16 @@ html, body {
   display: none;
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* BookMyShow-style hover effects */
 .bms-hover {
   transition: all 0.3s ease;

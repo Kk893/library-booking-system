@@ -368,7 +368,7 @@ router.get('/my-library', auth, adminAuth, async (req, res) => {
   try {
     const library = await Library.findOne({ adminId: req.user._id });
     if (!library) {
-      return res.status(404).json({ message: 'No library assigned to this admin' });
+      return res.status(200).json({ message: 'No library assigned to this admin', library: null });
     }
     res.json(library);
   } catch (error) {

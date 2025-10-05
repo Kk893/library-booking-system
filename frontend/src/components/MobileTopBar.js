@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import NotificationDropdown from './NotificationDropdown';
 
 const MobileTopBar = () => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedCity, setSelectedCity] = useState('Jaipur');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -20,22 +25,25 @@ const MobileTopBar = () => {
             </span>
           </div>
           
-          <select
-            value={selectedCity}
-            onChange={(e) => setSelectedCity(e.target.value)}
-            className={`px-3 py-1 rounded-lg border text-sm ${
-              isDark 
-                ? 'bg-gray-800 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-900'
-            }`}
-          >
-            <option>Jaipur</option>
-            <option>Mumbai</option>
-            <option>Delhi</option>
-            <option>Bangalore</option>
-            <option>Chennai</option>
-            <option>Pune</option>
-          </select>
+          <div className="flex items-center space-x-2">
+            {user && <NotificationDropdown />}
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className={`px-3 py-1 rounded-lg border text-sm ${
+                isDark 
+                  ? 'bg-gray-800 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              }`}
+            >
+              <option>Jaipur</option>
+              <option>Mumbai</option>
+              <option>Delhi</option>
+              <option>Bangalore</option>
+              <option>Chennai</option>
+              <option>Pune</option>
+            </select>
+          </div>
         </div>
 
         {/* Search Bar */}

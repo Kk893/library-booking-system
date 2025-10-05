@@ -28,7 +28,12 @@ export const AuthProvider = ({ children }) => {
       // Load user from localStorage first
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch (error) {
+          console.log('Invalid user data in localStorage');
+          localStorage.removeItem('user');
+        }
       }
       fetchUser();
     } else {
@@ -38,16 +43,34 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
+      // Check if user data is fresh (less than 10 minutes old)
+      const lastFetch = localStorage.getItem('userLastFetch');
+      const now = Date.now();
+      if (lastFetch && (now - parseInt(lastFetch)) < 600000) {
+        setLoading(false);
+        return; // Skip API call if data is fresh
+      }
+      
       const response = await axios.get('/api/auth/me');
       const serverUser = response.data.user;
       
-      // Always use server data as the source of truth
       setUser(serverUser);
       localStorage.setItem('user', JSON.stringify(serverUser));
+      localStorage.setItem('userLastFetch', now.toString());
     } catch (error) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      delete axios.defaults.headers.common['Authorization'];
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userLastFetch');
+        delete axios.defaults.headers.common['Authorization'];
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -89,14 +112,8 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     const response = await axios.post('/api/auth/register', userData);
-    const { token, user } = response.data;
-    
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    setUser(user);
-    
-    return user;
+    // Registration now only returns success message, no token
+    return response.data;
   };
 
   const logout = () => {
@@ -112,6 +129,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
+  const refreshAuth = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      fetchUser();
+    }
+  };
+
   const value = {
     user,
     login,
@@ -119,6 +144,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
+    refreshAuth,
     loading
   };
 

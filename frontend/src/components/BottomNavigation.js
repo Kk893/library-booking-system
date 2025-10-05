@@ -23,6 +23,21 @@ const BottomNavigation = () => {
     }`}>
       <div className="flex justify-around py-2">
         {navItems.map((item) => {
+          if (item.requireAuth && !user) {
+            return (
+              <button
+                key={item.path}
+                onClick={() => setShowProfileModal(true)}
+                className={`flex flex-col items-center py-2 px-2 rounded-lg transition-all ${
+                  isDark ? 'text-gray-400 hover:text-red-500' : 'text-gray-600 hover:text-red-500'
+                }`}
+              >
+                <span className="text-xl mb-1">{item.icon}</span>
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            );
+          }
+          
           if (item.path === '/profile') {
             return (
               <button

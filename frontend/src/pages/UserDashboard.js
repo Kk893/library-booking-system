@@ -22,7 +22,11 @@ const UserDashboard = () => {
   });
 
   useEffect(() => {
-    if (!user || user.role !== 'user') {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (user.role !== 'user') {
       navigate('/');
       return;
     }
@@ -32,11 +36,17 @@ const UserDashboard = () => {
   const fetchUserData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+      
+      const headers = { Authorization: `Bearer ${token}` };
+      const baseURL = 'http://localhost:5000';
 
       const [bookingsRes, librariesRes] = await Promise.all([
-        axios.get('/api/user/bookings', { headers }).catch(() => ({ data: [] })),
-        axios.get('/api/libraries', { headers }).catch(() => ({ data: [] }))
+        axios.get(`${baseURL}/api/user/bookings`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${baseURL}/api/libraries`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setBookings(bookingsRes.data || []);
@@ -56,7 +66,11 @@ const UserDashboard = () => {
 
     } catch (error) {
       console.error('Error fetching user data:', error);
-      toast.error('Failed to load dashboard data');
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+      }
     } finally {
       setLoading(false);
     }

@@ -56,6 +56,16 @@ const checkModifyPermission = (resourceModel, resourceIdField = 'id') => {
 // Middleware to require minimum role level
 const requireRole = (minRole) => {
   return (req, res, next) => {
+    // Handle array of roles
+    if (Array.isArray(minRole)) {
+      if (!minRole.includes(req.user.role)) {
+        return res.status(403).json({ 
+          message: `Access denied. One of these roles required: ${minRole.join(', ')}` 
+        });
+      }
+      return next();
+    }
+    
     const userLevel = getRoleLevel(req.user.role);
     const requiredLevel = getRoleLevel(minRole);
     

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import ProfileDropdown from './ProfileDropdown';
+import NotificationDropdown from './NotificationDropdown';
 import toast from 'react-hot-toast';
 
 const Navbar = () => {
@@ -118,18 +119,15 @@ const Navbar = () => {
             }`}>
               🎆 Events
             </Link>
-            {user && (
-              <Link to="/notifications" className={`font-medium transition-colors ${
-                isDark ? 'text-gray-300 hover:text-blue-400' : 'text-gray-700 hover:text-blue-600'
-              }`}>
-                🔔 Notifications
-              </Link>
-            )}
+
           </div>
 
           <div className="flex items-center space-x-4">
             {user ? (
-              <ProfileDropdown />
+              <>
+                <NotificationDropdown />
+                <ProfileDropdown />
+              </>
             ) : (
               <div className="flex space-x-3">
                 <Link 

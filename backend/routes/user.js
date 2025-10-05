@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Booking = require('../models/Booking');
 const Library = require('../models/Library');
 const Book = require('../models/Book');
+const NotificationService = require('../services/notificationService');
 const { auth, userAuth } = require('../middleware/auth');
 const { canManageUser, preventPrivilegeEscalation, logPrivilegeAction } = require('../middleware/rbac');
 
@@ -66,6 +67,19 @@ router.post('/bookings', auth, async (req, res) => {
     
     const booking = new Booking(bookingData);
     await booking.save();
+    
+    // Create notification for booking confirmation
+    try {
+      const library = await Library.findById(booking.libraryId);
+      await NotificationService.sendBookingConfirmation(req.user._id, {
+        type: 'seat',
+        libraryName: library?.name || 'Library',
+        date: new Date(booking.date).toLocaleDateString(),
+        bookingId: booking._id
+      }, req.user._id);
+    } catch (notifError) {
+      console.log('Notification creation failed:', notifError.message);
+    }
     
     res.status(201).json(booking);
   } catch (error) {

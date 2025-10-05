@@ -94,15 +94,12 @@ const Register = () => {
                 Go to Login
               </Link>
               
-              <button
-                onClick={() => {
-                  setRegistrationSuccess(false);
-                  setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-                }}
-                className="w-full text-center py-3 rounded-lg font-semibold transition-all border hover:scale-105 bg-gray-500 hover:bg-gray-600 text-white"
+              <Link
+                to="/resend-verification"
+                className="block w-full text-center py-3 rounded-lg font-semibold transition-all border hover:scale-105 bg-gray-500 hover:bg-gray-600 text-white"
               >
-                Register Another Account
-              </button>
+                Resend Verification Email
+              </Link>
             </div>
           </div>
         </div>

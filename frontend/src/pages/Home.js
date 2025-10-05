@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
 import axios from '../utils/axios';
 import OfferBanner from '../components/OfferBanner';
 import LibrarySlider from '../components/LibrarySlider';
 import MobileHomeHeader from '../components/MobileHomeHeader';
 import MobileQuickActions from '../components/MobileQuickActions';
 import MobileLibraryFilters from '../components/MobileLibraryFilters';
+
 
 const Home = () => {
   const [allLibraries, setAllLibraries] = useState([]);
@@ -16,11 +18,12 @@ const Home = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [selectedCity, setSelectedCity] = useState('Mumbai');
   const { isDark } = useTheme();
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Get user location
+    // Get user location only once
     const getUserLocation = () => {
-      if (navigator.geolocation) {
+      if (navigator.geolocation && !userLocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             setUserLocation({
@@ -30,7 +33,8 @@ const Home = () => {
           },
           (error) => {
             console.log('Location access denied, using city filter');
-          }
+          },
+          { timeout: 5000, maximumAge: 300000 } // 5 min cache
         );
       }
     };
@@ -39,28 +43,30 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch libraries based on location or city
-    const fetchLibraries = async () => {
-      try {
-        let response;
-        if (userLocation) {
-          // Use nearby API with user location
-          response = await axios.get(`/api/libraries/nearby?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=25&city=${selectedCity}`);
-          setNearbyLibraries(response.data || []);
-        } else {
-          // Use city filter
-          response = await axios.get(`/api/libraries?city=${selectedCity}`);
+    // Debounce library fetching to prevent excessive API calls
+    const timeoutId = setTimeout(() => {
+      const fetchLibraries = async () => {
+        try {
+          let response;
+          if (userLocation) {
+            response = await axios.get(`/api/libraries/nearby?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=25&city=${selectedCity}`);
+            setNearbyLibraries(response.data || []);
+          } else {
+            response = await axios.get(`/api/libraries?city=${selectedCity}`);
+          }
+          
+          const libraries = response.data || [];
+          setAllLibraries(libraries);
+          setFilteredLibraries(libraries);
+        } catch (error) {
+          console.log('Error fetching libraries');
         }
-        
-        const libraries = response.data || [];
-        setAllLibraries(libraries);
-        setFilteredLibraries(libraries);
-      } catch (error) {
-        console.log('Error fetching libraries');
-      }
-    };
+      };
 
-    fetchLibraries();
+      fetchLibraries();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [userLocation, selectedCity]);
 
   const handleFilterChange = (filter) => {
@@ -104,6 +110,8 @@ const Home = () => {
     <div className={`min-h-screen transition-all duration-300 pb-16 md:pb-0 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Mobile Home Header */}
       <MobileHomeHeader />
+      
+
       
       {/* Mobile Quick Actions */}
       <MobileQuickActions />

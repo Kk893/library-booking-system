@@ -65,7 +65,7 @@ const userSchema = new mongoose.Schema({
   },
   isVerified: {
     type: Boolean,
-    default: true // Allow existing users to login
+    default: false // Require email verification
   },
   libraryId: {
     type: mongoose.Schema.Types.ObjectId,

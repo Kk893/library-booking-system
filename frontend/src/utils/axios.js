@@ -22,8 +22,18 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      const isNotificationRequest = error.config?.url?.includes('/notifications');
+      const isAuthRequest = error.config?.url?.includes('/auth/');
+      
+      // Don't logout on notification or auth requests
+      if (!isNotificationRequest && !isAuthRequest) {
+        console.warn('Unauthorized access, redirecting to login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      } else {
+        console.warn('API request failed (401), but not logging out');
+      }
     }
     return Promise.reject(error);
   }

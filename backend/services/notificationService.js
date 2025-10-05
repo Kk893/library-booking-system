@@ -30,14 +30,45 @@ class NotificationService {
 
   // Send booking confirmation
   static async sendBookingConfirmation(userId, bookingData, createdBy) {
+    const bookingType = bookingData.type === 'seat' ? 'seat' : 'book';
+    const message = bookingType === 'seat' 
+      ? `Your seat booking at ${bookingData.libraryName || 'library'} has been confirmed for ${bookingData.date}`
+      : `Your book "${bookingData.bookTitle || 'book'}" reservation has been confirmed`;
+    
     return this.sendToUsers([userId], {
       title: 'Booking Confirmed! 🎉',
-      message: `Your ${bookingData.type} booking has been confirmed for ${bookingData.date}`,
+      message,
       type: 'booking',
       priority: 'high',
       relatedId: bookingData.bookingId,
       relatedModel: 'Booking',
-      createdBy
+      createdBy: createdBy || userId
+    });
+  }
+
+  // Send payment confirmation
+  static async sendPaymentConfirmation(userId, paymentData, createdBy) {
+    return this.sendToUsers([userId], {
+      title: 'Payment Successful 💳',
+      message: `Your payment of ₹${paymentData.amount} has been processed successfully. Transaction ID: ${paymentData.transactionId}`,
+      type: 'payment',
+      priority: 'medium',
+      relatedId: paymentData.paymentId,
+      relatedModel: 'Payment',
+      createdBy: createdBy || userId
+    });
+  }
+
+  // Send reminder notification
+  static async sendReminder(userId, reminderData, createdBy) {
+    return this.sendToUsers([userId], {
+      title: reminderData.title || 'Reminder 📅',
+      message: reminderData.message,
+      type: 'reminder',
+      priority: reminderData.priority || 'medium',
+      relatedId: reminderData.relatedId,
+      relatedModel: reminderData.relatedModel,
+      createdBy: createdBy || userId
     });
   }
 
@@ -93,11 +124,51 @@ class NotificationService {
   static async getUnreadCount(userId) {
     const notifications = await Notification.find({
       'recipients.userId': userId,
-      'recipients.read': false,
       isActive: true
     });
     
-    return notifications.length;
+    let unreadCount = 0;
+    notifications.forEach(notification => {
+      const recipient = notification.recipients.find(r => r.userId.toString() === userId.toString());
+      if (!recipient?.read) {
+        unreadCount++;
+      }
+    });
+    
+    return unreadCount;
+  }
+
+  // Create notification when user books a seat
+  static async createBookingNotification(booking) {
+    try {
+      const bookingData = {
+        type: 'seat',
+        libraryName: booking.library?.name || 'Library',
+        date: new Date(booking.date).toLocaleDateString(),
+        bookingId: booking._id
+      };
+      
+      await this.sendBookingConfirmation(booking.user, bookingData, booking.user);
+      console.log('Booking notification sent successfully');
+    } catch (error) {
+      console.error('Error sending booking notification:', error);
+    }
+  }
+
+  // Create notification when payment is successful
+  static async createPaymentNotification(payment) {
+    try {
+      const paymentData = {
+        amount: payment.amount,
+        transactionId: payment.transactionId || payment._id,
+        paymentId: payment._id
+      };
+      
+      await this.sendPaymentConfirmation(payment.user, paymentData, payment.user);
+      console.log('Payment notification sent successfully');
+    } catch (error) {
+      console.error('Error sending payment notification:', error);
+    }
   }
 }
 
